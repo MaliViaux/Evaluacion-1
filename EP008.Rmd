@@ -1,0 +1,157 @@
+---
+title: "EP008"
+author: "Equipo 6"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pregunta 1
+
+Propongan una pregunta de investigación original, que involucre la comparación de una frecuencia de un evento o característica en dos grupos independientes (más abajo se dan unos ejemplos). Fijando una semilla propia, seleccionen una muestra aleatoria de hogares (100 < n < 150) y respondan la pregunta propuesta utilizando una prueba de permutaciones Monte Carlo. Indicación: creen su propio código, específicamente para este problema, no usen directamente el script del apunte.
+
+### Pregunta propuesta
+
+La cantidad de hogares de la Región Metropolitana (`region`) afiliado a algún sistema de pensiones (`o28`) ¿es similar entre personas que hayan completado una carrera profesional y un técnico de nivel superior (`e6a`)?
+
+## Pregunta 2
+
+Propongan una pregunta de investigación original, que involucre la comparación de las medias de más de dos grupos independientes (más abajo se dan unos ejemplos). Fijando una semilla distinta a la anterior, seleccionen una muestra aleatoria de hogares (200 < n < 300) y respondan la pregunta propuesta utilizando bootstrapping. Solo por ejercicio académico, aplique un análisis post-hoc con bootstrapping aunque este no fuera necesario. Indicación: consideren que el análisis post-hoc debe hacerse con las mismas remuestras usadas para la prueba ómnibus.
+
+### Pregunta propuesta
+
+La cantidad de hijos promedio en los hogares (`s4`) de la región Metropolitana (`region`) ¿es similar entre personas casadas y divorciadas (`ecivil`)?
+
+```{r message=F}
+# Cargar librerías necesarias
+library(dplyr)
+library(ggpubr)
+
+# Fijar semilla para reproducibilidad
+set.seed(310)
+
+# Leer los datos
+casen <- read.csv("EP08 Datos CASEN 2017.csv")
+
+# Filtrar datos válidos: r15 entre 1 y 5, y sexo definido
+casen_filtrada <- casen %>%
+  filter(r15 %in% c("1", "2", "3", "4", "5"),
+         sexo %in% c("Hombre", "Mujer")) %>%
+  mutate(r15 = as.integer(r15),
+         publico = ifelse(r15 == 1, 1, 0))
+
+# Tomar muestra aleatoria de 120 personas
+muestra <- casen_filtrada %>% sample_n(120)
+
+# Ver proporciones observadas
+resumen <- muestra %>%
+  group_by(sexo) %>%
+  summarise(N = n(),
+            n_publico = sum(publico),
+            prop_publico = mean(publico))
+print(resumen)
+
+# Calcular diferencia observada en proporciones
+prop_hombre <- mean(muestra$publico[muestra$sexo == "Hombre"])
+prop_mujer  <- mean(muestra$publico[muestra$sexo == "Mujer"])
+diff_obs <- abs(prop_hombre - prop_mujer)
+cat("Diferencia observada en proporciones:", diff_obs, "\n")
+
+# Función para calcular diferencia en proporciones tras permutar
+diferencia_permutada <- function(i, datos) {
+  permutacion <- sample(datos$sexo)
+  datos_perm <- datos
+  datos_perm$sexo <- permutacion
+  prop_h <- mean(datos_perm$publico[datos_perm$sexo == "Hombre"])
+  prop_m <- mean(datos_perm$publico[datos_perm$sexo == "Mujer"])
+  return(abs(prop_h - prop_m))
+}
+
+# Número de permutaciones
+B <- 5000
+valores_permutados <- replicate(B, diferencia_permutada(i = NULL, muestra))
+
+# Calcular p-valor Monte Carlo (bilateral)
+p_valor <- (sum(valores_permutados >= diff_obs) + 1) / (B + 1)
+cat("Valor p estimado (prueba de permutaciones Monte Carlo):", p_valor, "\n")
+
+# Graficar la distribución permutada con el valor observado
+hist(valores_permutados, breaks = 50, col = "lightblue",
+     main = "Distribución de diferencias por permutación",
+     xlab = "Diferencia en proporciones")
+abline(v = diff_obs, col = "red", lwd = 2)
+legend("topright", legend = paste("Dif. observada =", round(diff_obs, 3)),
+       col = "red", lwd = 2)
+# Cargar librerías necesarias
+library(WRS2)
+library(dplyr)
+library(ggpubr)
+
+# Fijar semilla para reproducibilidad
+set.seed(707)
+
+# Leer los datos
+casen <- read.csv("EP08 Datos CASEN 2017.csv")
+
+# Asegurar que numper y ytotcorh son numéricos
+casen$numper <- as.numeric(casen$numper)
+casen$ytotcorh <- as.numeric(casen$ytotcorh)
+
+# Calcular ingreso per cápita y filtrar datos válidos
+casen <- casen %>%
+  filter(!is.na(numper), !is.na(ytotcorh), numper > 0, !is.na(region)) %>%
+  mutate(ingreso_pc = ytotcorh / numper)
+
+# Clasificar regiones en macrozonas
+casen <- casen %>%
+  mutate(macrozona = case_when(
+    region %in% c("Región de Tarapacá", "Región de Antofagasta",
+                  "Región de Atacama", "Región de Coquimbo") ~ "Norte",
+    region %in% c("Región de Valparaíso", "Región Metropolitana de Santiago",
+                  "Región del Libertador Gral. Bernardo O’Higgins",
+                  "Región del Maule") ~ "Centro",
+    region %in% c("Región de Ñuble", "Región del Biobío", "Región de La Araucanía") ~ "Sur",
+    region %in% c("Región de Los Ríos", "Región de Los Lagos",
+                  "Región de Aysén del Gral. C. Ibáñez del Campo", "Región de Magallanes") ~ "Austral",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(macrozona))
+
+# Tomar muestra de 250 observaciones
+muestra <- casen %>% sample_n(250)
+
+# Mostrar resumen
+resumen <- muestra %>%
+  group_by(macrozona) %>%
+  summarise(N = n(),
+            promedio = mean(ingreso_pc),
+            desviacion = sd(ingreso_pc))
+print(resumen)
+
+# Fijar parámetros de la prueba
+gamma <- 0.2  # poda
+nboot <- 999  # iteraciones bootstrap
+
+# ANOVA robusto con bootstrapping
+set.seed(707)
+anova_robusta <- t1waybt(ingreso_pc ~ macrozona, data = muestra,
+                         tr = gamma, nboot = nboot)
+
+cat("\nANOVA robusta con bootstrap:\n")
+print(anova_robusta)
+
+# Post-hoc robusto con las mismas remuestras
+posthoc_robusto <- mcppb20(ingreso_pc ~ macrozona, data = muestra,
+                           tr = gamma, nboot = nboot)
+
+cat("\nPost-hoc robusto con bootstrap:\n")
+print(posthoc_robusto)
+
+```
+
+
+
+

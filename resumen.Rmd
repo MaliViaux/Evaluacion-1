@@ -1,0 +1,1332 @@
+---
+title: "Untitled"
+author: "Andre Cosio"
+date: "2025-05-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# 📦 CARGA DE PAQUETES NECESARIOS
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+
+# 🧠 MODA MANUAL (R no tiene función nativa)
+moda_manual <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# 📊 FUNCIÓN GENERAL DE ESTADÍSTICA DESCRIPTIVA PARA UNA VARIABLE NUMÉRICA
+resumen_estadistico <- function(x, na.rm = TRUE) {
+  x <- na.omit(x)
+  list(
+    media = mean(x, na.rm = na.rm),
+    mediana = median(x, na.rm = na.rm),
+    moda = moda_manual(x),
+    desv_std = sd(x, na.rm = na.rm),
+    varianza = var(x, na.rm = na.rm),
+    IQR = IQR(x, na.rm = na.rm),
+    rango = range(x, na.rm = na.rm),
+    cuantiles = quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = na.rm),
+    asimetria = skewness(x, na.rm = na.rm),
+    curtosis = kurtosis(x, na.rm = na.rm)
+  )
+}
+
+# 📚 ESTADÍSTICA DESCRIPTIVA POR GRUPO
+resumen_por_grupo <- function(data, variable, grupo) {
+  data %>%
+    group_by(.data[[grupo]]) %>%
+    summarise(
+      media = mean(.data[[variable]], na.rm = TRUE),
+      mediana = median(.data[[variable]], na.rm = TRUE),
+      desv_std = sd(.data[[variable]], na.rm = TRUE),
+      IQR = IQR(.data[[variable]], na.rm = TRUE),
+      n = n()
+    )
+}
+
+# 📈 HISTOGRAMA Y BOXPLOT PARA UNA VARIABLE (con/sin agrupación)
+graficos_univariados <- function(data, variable, grupo = NULL) {
+  if (!is.null(grupo)) {
+    p1 <- gghistogram(data, x = variable, fill = grupo, add = "mean", bins = 30)
+    p2 <- ggboxplot(data, x = grupo, y = variable, color = grupo, add = "jitter")
+  } else {
+    p1 <- gghistogram(data, x = variable, fill = "steelblue", add = "mean", bins = 30)
+    p2 <- ggboxplot(data, y = variable, add = "jitter", fill = "steelblue")
+  }
+  print(p1)
+  print(p2)
+}
+
+# 📊 GRÁFICO Q-Q (NORMALIDAD)
+qqplot_variable <- function(x, titulo = "Gráfico Q-Q") {
+  df <- data.frame(x = x)
+  g <- ggqqplot(df, x = "x", color = "steelblue") +
+    ggtitle(titulo)
+  print(g)
+}
+
+# 📉 GRÁFICO DE BARRAS PARA VARIABLES CATEGÓRICAS
+grafico_barras <- function(x, titulo = "Frecuencia por categoría") {
+  tab <- table(x)
+  barplot(tab, col = "steelblue", main = titulo, ylab = "Frecuencia")
+}
+
+# 📋 TABLA DE FRECUENCIA Y PROPORCIÓN PARA CATEGÓRICAS
+tabla_frecuencia <- function(x) {
+  frec_abs <- table(x)
+  frec_rel <- prop.table(frec_abs)
+  data.frame(
+    Categoria = names(frec_abs),
+    Frecuencia = as.vector(frec_abs),
+    Proporcion = round(as.vector(frec_rel), 3)
+  )
+}
+
+# Simulación de datos
+set.seed(123)
+df <- data.frame(
+  ingreso = round(rnorm(100, mean = 500, sd = 80), 1),
+  sexo = sample(c("Hombre", "Mujer"), 100, replace = TRUE),
+  region = sample(c("Norte", "Centro", "Sur"), 100, replace = TRUE)
+)
+
+# 🔹 Descripción general de ingreso
+resumen_estadistico(df$ingreso)
+
+# 🔹 Descripción por grupo (sexo)
+resumen_por_grupo(df, "ingreso", "sexo")
+
+# 🔹 Gráficos generales
+graficos_univariados(df, "ingreso")
+
+# 🔹 Gráficos por sexo
+graficos_univariados(df, "ingreso", grupo = "sexo")
+
+# 🔹 Gráfico Q-Q para ingreso
+qqplot_variable(df$ingreso, titulo = "Q-Q plot ingreso")
+
+# 🔹 Tabla de frecuencia para variable categórica
+tabla_frecuencia(df$region)
+
+# 🔹 Gráfico de barras para variable categórica
+grafico_barras(df$region, titulo = "Distribución por región")
+
+# =====================================================
+# BLOQUE 1: Variables Aleatorias Discretas
+# =====================================================
+
+valor_esperado <- function(valores, probabilidades) sum(valores * probabilidades)
+
+varianza_discreta <- function(valores, probabilidades) {
+  mu <- valor_esperado(valores, probabilidades)
+  sum((valores - mu)^2 * probabilidades)
+}
+
+desviacion_discreta <- function(valores, probabilidades) sqrt(varianza_discreta(valores, probabilidades))
+
+tabla_discreta <- function(valores, probabilidades) {
+  data.frame(
+    Valor = valores,
+    Probabilidad = probabilidades,
+    Acumulada = cumsum(probabilidades)
+  )
+}
+
+grafico_discreto <- function(valores, probabilidades, titulo = "Distribución de Probabilidad") {
+  df <- data.frame(x = factor(valores), prob = probabilidades)
+  barplot(df$prob, names.arg = df$x, col = "steelblue", main = titulo, ylab = "P(X = x)")
+}
+
+verificar_probabilidades <- function(probabilidades) {
+  total <- sum(probabilidades)
+  if (abs(total - 1) > 0.001) warning("Probabilidades no suman 1. Suman:", total)
+  return(total)
+}
+
+valores <- 1:6
+probabilidades <- c(0.25, 0.125, 0.125, 0.125, 0.125, 0.25)
+names(probabilidades) <- valores
+
+verificar_probabilidades(probabilidades)
+tabla_discreta(valores, probabilidades)
+mu <- valor_esperado(valores, probabilidades)
+cat("Esperanza:", mu, "\n")
+cat("Varianza:", varianza_discreta(valores, probabilidades), "\n")
+cat("Desviación:", desviacion_discreta(valores, probabilidades), "\n")
+grafico_discreto(valores, probabilidades, "PMF de un dado cargado")
+
+
+# =====================================================
+# BLOQUE 2: Suma de Variables IID (Convolución Discreta)
+# =====================================================
+
+SumaIID <- function(pr, n = 2) {
+  probs <- pr; i <- 2
+  while (i <= n) {
+    npr <- outer(probs, pr, "*")
+    nout <- outer(as.numeric(names(probs)), as.numeric(names(pr)), "+")
+    probs <- tapply(npr, nout, sum)
+    i <- i + 1
+  }
+  return(probs)
+}
+
+# Distribución de un dado cargado
+pr <- c(0.25, rep(0.125, 4), 0.25)
+names(pr) <- 1:6
+
+# Sumar 5 veces
+suma5 <- SumaIID(pr, 5)
+barplot(suma5, main = "Distribución de la suma de 5 dados", col = "steelblue")
+
+# =====================================================
+# BLOQUE 3: Variables Continuas (Normal, t, etc.)
+# =====================================================
+
+probabilidad_normal <- function(a, b = NULL, media = 0, sd = 1, lower.tail = TRUE) {
+  if (is.null(b)) {
+    p <- pnorm(a, mean = media, sd = sd, lower.tail = lower.tail)
+    cat("P(X", ifelse(lower.tail, "≤", ">"), a, ") =", round(p, 4), "\n")
+    return(p)
+  } else {
+    p <- pnorm(b, mean = media, sd = sd) - pnorm(a, mean = media, sd = sd)
+    cat("P(", a, "≤ X ≤", b, ") =", round(p, 4), "\n")
+    return(p)
+  }
+}
+
+# P(X ≤ 70) si X ~ N(60,10)
+probabilidad_normal(70, media = 60, sd = 10)
+
+# P(X > 75)
+probabilidad_normal(75, media = 60, sd = 10, lower.tail = FALSE)
+
+# P(45 ≤ X ≤ 75)
+probabilidad_normal(45, 75, media = 60, sd = 10)
+
+
+# =====================================================
+# BLOQUE 4: Transformaciones Z y P(Z > z)
+# =====================================================
+
+z_score <- function(x, mu, sigma) {
+  z <- (x - mu) / sigma
+  cat("Z =", round(z, 4), "\n")
+  return(z)
+}
+
+probabilidad_z <- function(z, tipo = "mayor") {
+  if (tipo == "mayor") return(pnorm(z, lower.tail = FALSE))
+  if (tipo == "menor") return(pnorm(z))
+  if (length(z) == 2) return(pnorm(max(z)) - pnorm(min(z)))
+  stop("Tipo inválido.")
+}
+
+# Transformar 75 a Z en N(60,10)
+z <- z_score(75, mu = 60, sigma = 10)
+
+# P(Z > z)
+probabilidad_z(z, tipo = "mayor")
+
+# P(-1 ≤ Z ≤ 1.5)
+probabilidad_z(c(-1, 1.5))
+
+
+# =====================================================
+# BLOQUE 5: Cuantiles y Valores Críticos
+# =====================================================
+
+cuantil_normal <- function(probabilidad, media = 0, sd = 1, cola = "inferior") {
+  if (cola == "inferior") q <- qnorm(probabilidad, mean = media, sd = sd)
+  else q <- qnorm(1 - probabilidad, mean = media, sd = sd)
+  cat("Z* =", round(q, 4), "\n"); return(q)
+}
+
+cuantil_t <- function(probabilidad, df, cola = "bilateral") {
+  if (cola == "bilateral") q <- qt(1 - probabilidad/2, df)
+  else q <- qt(1 - probabilidad, df)
+  cat("t* =", round(q, 4), "\n"); return(q)
+}
+
+cuantil_chi2 <- function(probabilidad, df, cola = "superior") {
+  if (cola == "superior") q <- qchisq(1 - probabilidad, df)
+  else q <- qchisq(probabilidad, df)
+  cat("chi²* =", round(q, 4), "\n"); return(q)
+}
+
+cuantil_f <- function(probabilidad, df1, df2, cola = "superior") {
+  if (cola == "superior") q <- qf(1 - probabilidad, df1, df2)
+  else q <- qf(probabilidad, df1, df2)
+  cat("F* =", round(q, 4), "\n"); return(q)
+}
+
+# Z crítico para 95% bilateral
+cuantil_normal(0.975)  # ~1.96
+
+# t crítico bilateral con 14 grados de libertad
+cuantil_t(0.05, df = 14)
+
+# chi² crítico superior con 10 df
+cuantil_chi2(0.05, df = 10)
+
+# F crítico con df1 = 4, df2 = 10
+cuantil_f(0.05, df1 = 4, df2 = 10)
+
+
+# =====================================================
+# BLOQUE 6: Simulación Aleatoria
+# =====================================================
+
+simular_continua <- function(distribucion, n, ...) {
+  valores <- switch(distribucion,
+    normal = rnorm(n, ...),
+    t = rt(n, ...),
+    chi2 = rchisq(n, ...),
+    f = rf(n, ...),
+    stop("Distribución no reconocida")
+  )
+  hist(valores, col = "steelblue", main = paste("Simulación de", distribucion),
+       xlab = "Valores simulados", breaks = 30)
+  return(valores)
+}
+
+simular_discreta <- function(distribucion, n, ...) {
+  valores <- switch(distribucion,
+    binomial = rbinom(n, ...),
+    poisson = rpois(n, ...),
+    stop("Distribución no reconocida")
+  )
+  barplot(table(valores), col = "tomato", main = paste("Simulación de", distribucion))
+  return(valores)
+}
+
+# Simular 100 valores N(60, 10²)
+simular_continua("normal", 100, mean = 60, sd = 10)
+
+# Simular 200 valores de t(10)
+simular_continua("t", 200, df = 10)
+
+# Simular 300 lanzamientos binomiales (10 ensayos, p = 0.3)
+simular_discreta("binomial", 300, size = 10, prob = 0.3)
+
+# Simular 300 eventos Poisson con λ = 3
+simular_discreta("poisson", 300, lambda = 3)
+
+
+# =====================================================
+# BLOQUE 7: Visualización de Distribuciones
+# =====================================================
+
+visualizar_densidad <- function(dist = "normal", cola = "derecha", limite1, limite2 = NULL,
+                                media = 0, sd = 1, df = NULL, df2 = NULL, col_area = "skyblue") {
+  x <- switch(dist,
+              normal = seq(media - 4 * sd, media + 4 * sd, length = 1000),
+              t = seq(-5, 5, length = 1000),
+              chi2 = seq(0, 30, length = 1000),
+              f = seq(0, 6, length = 1000),
+              stop("Distribución no soportada"))
+  y <- switch(dist,
+              normal = dnorm(x, mean = media, sd = sd),
+              t = dt(x, df = df),
+              chi2 = dchisq(x, df = df),
+              f = df(x, df1 = df, df2 = df2))
+
+  plot(x, y, type = "l", lwd = 2, col = "black", main = paste("Distribución", dist),
+       ylab = "Densidad", xlab = "x"); abline(h = 0)
+
+  if (cola == "derecha") {
+    x_shade <- x[x >= limite1]; y_shade <- y[x >= limite1]
+    polygon(c(limite1, x_shade, max(x)), c(0, y_shade, 0), col = col_area, border = NA)
+  } else if (cola == "izquierda") {
+    x_shade <- x[x <= limite1]; y_shade <- y[x <= limite1]
+    polygon(c(min(x), x_shade, limite1), c(0, y_shade, 0), col = col_area, border = NA)
+  } else if (cola == "central" && !is.null(limite2)) {
+    x_shade <- x[x >= limite1 & x <= limite2]; y_shade <- y[x >= limite1 & x <= limite2]
+    polygon(c(limite1, x_shade, limite2), c(0, y_shade, 0), col = col_area, border = NA)
+  }
+}
+
+# Área a la derecha de z = 1.64
+visualizar_densidad(dist = "normal", cola = "derecha", limite1 = 1.64)
+
+# Área a la izquierda de z = -2
+visualizar_densidad(dist = "normal", cola = "izquierda", limite1 = -2)
+
+# Área entre -1.96 y 1.96 (intervalo de confianza 95%)
+visualizar_densidad(dist = "normal", cola = "central", limite1 = -1.96, limite2 = 1.96)
+
+# Área de rechazo t(10) a la derecha
+visualizar_densidad(dist = "t", cola = "derecha", limite1 = 2.228, df = 10)
+
+# ===============================================
+# BLOQUE 1: t-test para una muestra
+# ===============================================
+
+evaluar_normalidad <- function(x) {
+  shapiro <- shapiro.test(x)
+  cat("p-valor Shapiro-Wilk:", round(shapiro$p.value, 4), "\n")
+  if (shapiro$p.value < 0.05) {
+    cat("⚠️ Los datos NO parecen normales\n")
+  } else {
+    cat("✅ Datos normales\n")
+  }
+  return(shapiro$p.value)
+}
+
+t_prueba_una_muestra <- function(x, mu_hipotesis, alpha = 0.05, alternativa = "two.sided") {
+  cat("Media:", mean(x), "\n")
+  evaluar_normalidad(x)
+  resultado <- t.test(x, mu = mu_hipotesis, alternative = alternativa, conf.level = 1 - alpha)
+  print(resultado)
+  if (resultado$p.value < alpha) cat("❌ Se rechaza H₀\n") else cat("✅ No se rechaza H₀\n")
+}
+
+# ===============================================
+# BLOQUE 2: t-test para dos muestras
+# ===============================================
+
+evaluar_normalidad_doble <- function(x, y) {
+  px <- shapiro.test(x)$p.value; py <- shapiro.test(y)$p.value
+  cat("Shapiro X:", round(px, 4), " - Y:", round(py, 4), "\n")
+  if (px < 0.05 || py < 0.05) cat("⚠️ Al menos una no es normal\n") else cat("✅ Ambas normales\n")
+}
+
+t_prueba_dos_muestras <- function(x, y, pareada = FALSE, alpha = 0.05, alternativa = "two.sided") {
+  cat("Media grupo 1:", mean(x), " - grupo 2:", mean(y), "\n")
+  if (!pareada) evaluar_normalidad_doble(x, y)
+  resultado <- t.test(x, y, paired = pareada, alternative = alternativa, conf.level = 1 - alpha)
+  print(resultado)
+  if (resultado$p.value < alpha) cat("❌ Se rechaza H₀\n") else cat("✅ No se rechaza H₀\n")
+}
+
+# ===============================================
+# BLOQUE 3: z-test para una muestra (TeachingDemos)
+# ===============================================
+
+if (!require(TeachingDemos)) install.packages("TeachingDemos"); library(TeachingDemos)
+
+z_prueba_una_muestra <- function(x, sigma_poblacional, mu_hipotesis, alpha = 0.05, alternativa = "two.sided") {
+  resultado <- z.test(x = x, mu = mu_hipotesis, stdev = sigma_poblacional,
+                      alternative = alternativa, conf.level = 1 - alpha)
+  print(resultado)
+  if (resultado$p.value < alpha) cat("❌ Se rechaza H₀\n") else cat("✅ No se rechaza H₀\n")
+}
+
+# ===============================================
+# BLOQUE 4: Pruebas de proporciones
+# ===============================================
+
+prueba_proporcion_una_muestra <- function(x, n, p_hipotesis, alpha = 0.05, alternativa = "two.sided") {
+  resultado <- prop.test(x = x, n = n, p = p_hipotesis,
+                         alternative = alternativa, conf.level = 1 - alpha, correct = FALSE)
+  print(resultado)
+  if (resultado$p.value < alpha) cat("❌ Se rechaza H₀\n") else cat("✅ No se rechaza H₀\n")
+}
+
+prueba_proporcion_dos_muestras <- function(x1, n1, x2, n2, alpha = 0.05, alternativa = "two.sided") {
+  resultado <- prop.test(x = c(x1, x2), n = c(n1, n2),
+                         alternative = alternativa, conf.level = 1 - alpha, correct = FALSE)
+  print(resultado)
+  if (resultado$p.value < alpha) cat("❌ Proporciones diferentes\n") else cat("✅ Proporciones similares\n")
+}
+
+# ===============================================
+# BLOQUE 5: Evaluación de normalidad y varianzas
+# ===============================================
+
+evaluar_varianzas <- function(x, y, metodo = "var") {
+  if (metodo == "var") {
+    resultado <- var.test(x, y)
+    cat("var.test p-valor:", round(resultado$p.value, 4), "\n")
+  } else {
+    if (!require(car)) install.packages("car"); library(car)
+    grupo <- c(rep("A", length(x)), rep("B", length(y)))
+    resultado <- leveneTest(c(x, y) ~ grupo)
+    print(resultado)
+  }
+  if (resultado$p.value < 0.05) cat("⚠️ Varianzas distintas\n") else cat("✅ Varianzas similares\n")
+}
+
+# ===============================================
+# BLOQUE 6: Visualización de zonas críticas
+# ===============================================
+
+graficar_zona_critica <- function(stat_observado, alpha = 0.05, tipo = "z", df = NULL,
+                                  bilateral = TRUE, col_critico = "tomato", col_obs = "black") {
+  if (tipo == "z") {
+    x <- seq(-4, 4, 0.01); y <- dnorm(x); f <- dnorm; q_func <- qnorm
+  } else {
+    x <- seq(-5, 5, 0.01); y <- dt(x, df); f <- function(x) dt(x, df); q_func <- function(p) qt(p, df)
+  }
+  plot(x, y, type = "l", col = "steelblue", lwd = 2, main = paste("Distribución", tipo))
+  if (bilateral) {
+    q <- q_func(1 - alpha / 2)
+    polygon(c(-q, seq(-q, -4, -0.01), -4), c(0, f(seq(-q, -4, -0.01)), 0), col = col_critico, border = NA)
+    polygon(c(q, seq(q, 4, 0.01), 4), c(0, f(seq(q, 4, 0.01)), 0), col = col_critico, border = NA)
+    abline(v = c(-q, q), col = "red", lty = 2)
+  } else {
+    q <- q_func(1 - alpha)
+    polygon(c(q, seq(q, 4, 0.01), 4), c(0, f(seq(q, 4, 0.01)), 0), col = col_critico, border = NA)
+    abline(v = q, col = "red", lty = 2)
+  }
+  abline(v = stat_observado, col = col_obs, lwd = 2)
+}
+
+# ===============================================
+# BLOQUE 7: Poder estadístico y tamaño muestral
+# ===============================================
+
+if (!require(pwr)) install.packages("pwr"); library(pwr)
+
+calcular_poder_t <- function(d, n, tipo = "two.sample", sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.t.test(d = d, n = n, sig.level = sig.level, type = tipo, alternative = alternativa)
+  print(resultado)
+}
+
+calcular_n_t <- function(d, power_deseado, tipo = "two.sample", sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.t.test(d = d, power = power_deseado, sig.level = sig.level, type = tipo, alternative = alternativa)
+  print(resultado)
+}
+
+calcular_poder_proporciones <- function(h, n, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.2p.test(h = h, n = n, sig.level = sig.level, alternative = alternativa)
+  print(resultado)
+}
+
+calcular_n_proporciones <- function(h, power_deseado, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.2p.test(h = h, power = power_deseado, sig.level = sig.level, alternative = alternativa)
+  print(resultado)
+}
+
+# ===============================================
+# BLOQUE 8: Pruebas no paramétricas
+# ===============================================
+
+prueba_wilcoxon_una_muestra <- function(x, mu = 0, alpha = 0.05) {
+  resultado <- wilcox.test(x, mu = mu, conf.level = 1 - alpha)
+  print(resultado)
+}
+
+prueba_wilcoxon_dos_grupos <- function(x, y, pareado = TRUE, alpha = 0.05) {
+  resultado <- wilcox.test(x, y, paired = pareado, conf.level = 1 - alpha)
+  print(resultado)
+}
+
+prueba_chi2 <- function(tabla) {
+  resultado <- chisq.test(tabla)
+  print(resultado)
+}
+
+prueba_fisher <- function(tabla) {
+  resultado <- fisher.test(tabla)
+  print(resultado)
+}
+
+prueba_cochran_q <- function(data, grupo, sujeto) {
+  if (!require(DescTools)) install.packages("DescTools"); library(DescTools)
+  resultado <- CochranQTest(as.formula(paste(grupo, "~", sujeto)), data = data)
+  print(resultado)
+}
+
+# ======================
+# BLOQUE 1: t para una muestra
+# ======================
+set.seed(1)
+x <- rnorm(20, mean = 102, sd = 5)
+t_prueba_una_muestra(x, mu_hipotesis = 100)
+
+# ======================
+# BLOQUE 2: t para dos muestras
+# ======================
+grupo1 <- rnorm(30, mean = 50, sd = 5)
+grupo2 <- rnorm(30, mean = 53, sd = 5)
+t_prueba_dos_muestras(grupo1, grupo2, pareada = FALSE)
+
+# ======================
+# BLOQUE 3: z para una muestra (σ conocida)
+# ======================
+x2 <- rnorm(40, mean = 105, sd = 10)
+z_prueba_una_muestra(x2, sigma_poblacional = 10, mu_hipotesis = 100)
+
+# ======================
+# BLOQUE 4: proporciones
+# ======================
+# Una muestra
+prueba_proporcion_una_muestra(x = 56, n = 100, p_hipotesis = 0.5)
+
+# Dos muestras
+prueba_proporcion_dos_muestras(x1 = 32, n1 = 50, x2 = 40, n2 = 60)
+
+# ======================
+# BLOQUE 5: condiciones
+# ======================
+evaluar_normalidad(grupo1)
+evaluar_varianzas(grupo1, grupo2)
+
+# ======================
+# BLOQUE 6: visualización crítica
+# ======================
+graficar_zona_critica(stat_observado = 2.3, tipo = "t", df = 29)
+graficar_zona_critica(stat_observado = 1.7, tipo = "z", bilateral = FALSE)
+
+# ======================
+# BLOQUE 7: poder estadístico
+# ======================
+calcular_poder_t(d = 0.5, n = 30)
+calcular_n_t(d = 0.4, power_deseado = 0.9)
+calcular_poder_proporciones(h = ES.h(0.7, 0.5), n = 40)
+calcular_n_proporciones(h = ES.h(0.6, 0.4), power_deseado = 0.95)
+
+# ======================
+# BLOQUE 8: no paramétricas
+# ======================
+# Wilcoxon una muestra
+x3 <- c(45, 48, 49, 50, 53, 55)
+prueba_wilcoxon_una_muestra(x3, mu = 50)
+
+# Mann–Whitney (independientes)
+a <- c(8, 10, 11, 12)
+b <- c(14, 15, 17)
+prueba_wilcoxon_dos_grupos(a, b, pareado = FALSE)
+
+# Chi² y Fisher
+tabla_chi2 <- matrix(c(20, 30, 25, 25), nrow = 2)
+prueba_chi2(tabla_chi2)
+
+tabla_fisher <- matrix(c(3, 1, 1, 3), nrow = 2)
+prueba_fisher(tabla_fisher)
+
+# Cochran Q
+library(tidyr)
+df <- data.frame(
+  sujeto = 1:5,
+  tratamientoA = c(1, 0, 1, 1, 0),
+  tratamientoB = c(1, 0, 0, 1, 1),
+  tratamientoC = c(1, 0, 1, 0, 1)
+)
+df_long <- pivot_longer(df, cols = starts_with("tratamiento"),
+                        names_to = "tratamiento", values_to = "resultado")
+CochranQTest(resultado ~ tratamiento | sujeto, data = df_long)
+
+```
+
+
+```{r}
+# ==========================
+# CARGA DE PAQUETES NECESARIOS
+# ==========================
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if (!require(car)) install.packages("car"); library(car)
+if (!require(ez)) install.packages("ez"); library(ez)
+if (!require(pwr)) install.packages("pwr"); library(pwr)
+
+# ===========================================
+# BLOQUE 1: ANOVA una vía (grupos independientes)
+# ===========================================
+
+anova_una_via <- function(data, y, grupo, alpha = 0.05) {
+  formula_str <- as.formula(paste(y, "~", grupo))
+  modelo <- aov(formula_str, data = data)
+  resumen <- summary(modelo)
+  print(resumen)
+  
+  p <- resumen[[1]][["Pr(>F)"]][1]
+  if (p < alpha) {
+    cat("❌ Se rechaza H₀: al menos un grupo difiere\n")
+  } else {
+    cat("✅ No se rechaza H₀: no hay diferencias significativas\n")
+  }
+  
+  return(invisible(modelo))
+}
+
+# ===========================================
+# BLOQUE 2: ANOVA para medidas repetidas (ezANOVA)
+# ===========================================
+
+anova_repetidas <- function(data, sujeto, condicion, respuesta, alpha = 0.05) {
+  data[[sujeto]] <- factor(data[[sujeto]])
+  data[[condicion]] <- factor(data[[condicion]])
+
+  resultado <- ezANOVA(
+    data = data,
+    dv = as.name(respuesta),
+    wid = as.name(sujeto),
+    within = as.name(condicion),
+    type = 3,
+    return_aov = TRUE,
+    detailed = TRUE
+  )
+
+  print(resultado$ANOVA)
+
+  p <- resultado$ANOVA$p[1]
+  if (p < alpha) {
+    cat("❌ Se rechaza H₀: hay diferencias entre condiciones\n")
+  } else {
+    cat("✅ No se rechaza H₀: condiciones similares\n")
+  }
+
+  return(invisible(resultado))
+}
+
+# ===========================================
+# BLOQUE 3: Verificación de supuestos
+# ===========================================
+
+# Evaluar normalidad de residuos por grupo
+verificar_normalidad_por_grupo <- function(data, grupo, respuesta) {
+  grupos <- unique(data[[grupo]])
+  for (g in grupos) {
+    x <- data[data[[grupo]] == g, respuesta]
+    pval <- shapiro.test(x)$p.value
+    cat("Grupo", g, ": p =", round(pval, 4), ifelse(pval < 0.05, "❌ No normal", "✅ Normal"), "\n")
+  }
+}
+
+# Evaluar homocedasticidad
+verificar_homocedasticidad <- function(data, grupo, respuesta) {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  resultado <- leveneTest(formula_str, data = data)
+  print(resultado)
+  if (resultado$`Pr(>F)`[1] < 0.05) {
+    cat("❌ Varianzas desiguales entre grupos\n")
+  } else {
+    cat("✅ Varianzas homogéneas\n")
+  }
+}
+
+# ===========================================
+# BLOQUE 4: Pruebas Post-hoc (Tukey, Comparaciones Múltiples)
+# ===========================================
+
+posthoc_tukey <- function(modelo_aov) {
+  resultado <- TukeyHSD(modelo_aov)
+  print(resultado)
+  cat("Interpretación:\n")
+  sig <- resultado[[1]][, "p adj"] < 0.05
+  print(data.frame(Diferencia = rownames(resultado[[1]]), Significativa = sig))
+}
+
+comparaciones_multiples_t <- function(data, grupo, respuesta, metodo = "holm") {
+  resultado <- pairwise.t.test(data[[respuesta]], data[[grupo]], p.adjust.method = metodo)
+  print(resultado)
+}
+
+# ===========================================
+# BLOQUE 5: ANOVA No Paramétrico (Kruskal-Wallis)
+# ===========================================
+
+anova_kruskal <- function(data, grupo, respuesta, alpha = 0.05) {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  resultado <- kruskal.test(formula_str, data = data)
+  print(resultado)
+  
+  if (resultado$p.value < alpha) {
+    cat("❌ Se rechaza H₀: al menos un grupo difiere\n")
+  } else {
+    cat("✅ No se rechaza H₀: grupos similares\n")
+  }
+}
+
+comparaciones_multiples_wilcox <- function(data, grupo, respuesta, metodo = "holm") {
+  resultado <- pairwise.wilcox.test(data[[respuesta]], data[[grupo]], p.adjust.method = metodo)
+  print(resultado)
+}
+
+# ===========================================
+# BLOQUE 6: Visualización de Resultados y Diagnóstico Gráfico
+# ===========================================
+
+# Boxplot para ANOVA y Kruskal-Wallis
+grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  boxplot(formula_str, data = data, main = titulo, col = "lightblue", ylab = respuesta)
+}
+
+# Diagnóstico gráfico de residuos para ANOVA
+grafico_residuos_anova <- function(modelo_aov) {
+  par(mfrow = c(1, 2))
+  
+  # Residuos vs. valores ajustados
+  plot(modelo_aov, 1, main = "Residuos vs. Valores Ajustados")
+  
+  # Q-Q plot de residuos
+  plot(modelo_aov, 2, main = "Q-Q de Residuos")
+  
+  par(mfrow = c(1, 1))  # Resetear disposición gráfica
+}
+
+# Gráfico de comparación de medias con errores estándar
+grafico_comparacion_medias <- function(data, grupo, respuesta, metodo = "anova") {
+  library(ggplot2)
+  modelo <- aov(as.formula(paste(respuesta, "~", grupo)), data = data)
+  resultado <- TukeyHSD(modelo)
+  df_comparacion <- as.data.frame(resultado[[1]])
+  
+  ggplot(df_comparacion, aes(x = rownames(df_comparacion), y = diff, ymin = lwr, ymax = upr)) +
+    geom_pointrange() +
+    labs(x = "Comparaciones", y = "Diferencia de medias") +
+    theme_minimal()
+}
+
+# ============================
+# CARGA DE PAQUETES NECESARIOS
+# ============================
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if (!require(car)) install.packages("car"); library(car)
+if (!require(ez)) install.packages("ez"); library(ez)
+if (!require(pwr)) install.packages("pwr"); library(pwr)
+
+# ============================
+# BLOQUE 1: ANOVA una vía (grupos independientes)
+# ============================
+# Cargar el conjunto de datos iris
+data(iris)
+
+# Realizar ANOVA para Sepal.Length entre especies
+modelo_anova <- aov(Sepal.Length ~ Species, data = iris)
+summary(modelo_anova)
+
+# ============================
+# BLOQUE 3: Verificación de supuestos (normalidad y homocedasticidad)
+# ============================
+# Verificar normalidad en el conjunto de datos iris (Sepal.Length)
+verificar_normalidad_por_grupo(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+# Verificar homocedasticidad entre especies en iris
+verificar_homocedasticidad(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+# ============================
+# BLOQUE 4: Pruebas Post-hoc (Tukey, Comparaciones Múltiples)
+# ============================
+# Post-hoc Tukey para el modelo ANOVA de iris
+posthoc_tukey(modelo_anova)
+
+# Comparaciones múltiples t-test (Holm) entre especies en iris
+comparaciones_multiples_t(iris, grupo = "Species", respuesta = "Sepal.Length", metodo = "holm")
+
+# ============================
+# BLOQUE 5: ANOVA No Paramétrico (Kruskal-Wallis)
+# ============================
+# Simulamos otro conjunto de datos para Kruskal-Wallis
+set.seed(123)
+df_np <- data.frame(
+  valor = c(rlnorm(10, 3), rlnorm(10, 3.2), rlnorm(10, 3.8)),
+  grupo = factor(rep(c("X", "Y", "Z"), each = 10))
+)
+
+# Kruskal-Wallis entre los tres grupos
+anova_kruskal(df_np, grupo = "grupo", respuesta = "valor")
+
+# Comparaciones múltiples con Wilcoxon (con corrección de p-valor)
+comparaciones_multiples_wilcox(df_np, grupo = "grupo", respuesta = "valor")
+
+# ============================
+# BLOQUE 6: Visualización de Resultados y Diagnóstico Gráfico
+# ============================
+# Boxplot para ANOVA o Kruskal-Wallis
+grafico_boxplot(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+# Diagnóstico gráfico para ANOVA en iris
+grafico_residuos_anova(modelo_anova)
+
+# Gráfico de comparaciones de medias con Tukey
+grafico_comparacion_medias(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+
+```
+
+```{r}
+# ============================
+# CARGA DE PAQUETES NECESARIOS
+# ============================
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+
+# ============================
+# CÁLCULO DE PODER Y TAMAÑO DE MUESTRA PARA PRUEBAS t
+# ============================
+
+# Cálculo del poder para una prueba t de una muestra
+calcular_poder_t_una_muestra <- function(d, n, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.t.test(d = d, n = n, sig.level = sig.level, type = "one.sample", alternative = alternativa)
+  print(resultado)
+}
+
+# Ejemplo: Cálculo de poder para una prueba t con tamaño de efecto d = 0.5 y n = 30
+calcular_poder_t_una_muestra(d = 0.5, n = 30)
+
+# Cálculo del poder para una prueba t de dos muestras (independientes)
+calcular_poder_t_dos_muestras <- function(d, n, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.t.test(d = d, n = n, sig.level = sig.level, type = "two.sample", alternative = alternativa)
+  print(resultado)
+}
+
+# Ejemplo: Cálculo de poder para una prueba t con tamaño de efecto d = 0.5 y n = 30
+calcular_poder_t_dos_muestras(d = 0.5, n = 30)
+
+# Cálculo del tamaño de muestra necesario para una prueba t de dos muestras
+calcular_n_t_dos_muestras <- function(d, power_deseado, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.t.test(d = d, power = power_deseado, sig.level = sig.level, type = "two.sample", alternative = alternativa)
+  print(resultado)
+}
+
+# Ejemplo: Tamaño de muestra necesario para poder de 0.9 con tamaño de efecto d = 0.5
+calcular_n_t_dos_muestras(d = 0.5, power_deseado = 0.9)
+
+# ============================
+# CÁLCULO DE PODER PARA PRUEBAS DE PROPORCIONES
+# ============================
+
+# Cálculo del poder para una prueba de proporciones
+calcular_poder_proporciones <- function(h, n, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.2p.test(h = h, n = n, sig.level = sig.level, alternative = alternativa)
+  print(resultado)
+}
+
+# Ejemplo: Poder de la prueba de proporciones con tamaño de efecto h = 0.5 y n = 40
+calcular_poder_proporciones(h = ES.h(0.7, 0.5), n = 40)
+
+# Cálculo del tamaño de muestra necesario para una prueba de proporciones
+calcular_n_proporciones <- function(h, power_deseado, sig.level = 0.05, alternativa = "two.sided") {
+  resultado <- pwr.2p.test(h = h, power = power_deseado, sig.level = sig.level, alternative = alternativa)
+  print(resultado)
+}
+
+# Ejemplo: Tamaño de muestra necesario para poder de 0.95 con tamaño de efecto h = 0.6
+calcular_n_proporciones(h = ES.h(0.6, 0.4), power_deseado = 0.95)
+
+# ============================
+# CÁLCULO DE PODER PARA ANOVA DE UNA VÍA (F)
+# ============================
+
+# Cálculo del poder para una prueba ANOVA de una vía (F)
+calcular_poder_anova <- function(d, n, k = 3, sig.level = 0.05) {
+  resultado <- pwr.anova.test(k = k, n = n, f = d, sig.level = sig.level)
+  print(resultado)
+}
+
+# Ejemplo: Poder de ANOVA con tamaño de efecto f = 0.25, 3 grupos y n = 30 por grupo
+calcular_poder_anova(d = 0.25, n = 30)
+
+# Cálculo del tamaño de muestra necesario para ANOVA de una vía (F)
+calcular_n_tamaño_anova <- function(d, power_deseado, k = 3, sig.level = 0.05) {
+  resultado <- pwr.anova.test(k = k, power = power_deseado, f = d, sig.level = sig.level)
+  print(resultado)
+}
+
+# Ejemplo: Tamaño de muestra necesario para poder de 0.9 con tamaño de efecto f = 0.25 y 3 grupos
+calcular_n_tamaño_anova(d = 0.25, power_deseado = 0.9)
+
+# ============================
+# VISUALIZACIÓN DE POTENCIA FRENTE AL TAMAÑO DE MUESTRA
+# ============================
+
+# Gráfico de potencia frente al tamaño de muestra para una prueba t
+grafico_poder_t <- function(d, max_n = 100, sig.level = 0.05, alternativa = "two.sided") {
+  n_values <- seq(5, max_n, by = 5)
+  poder_values <- sapply(n_values, function(n) {
+    resultado <- pwr.t.test(d = d, n = n, sig.level = sig.level, type = "two.sample", alternative = alternativa)
+    return(resultado$power)
+  })
+  plot(n_values, poder_values, type = "b", col = "blue", pch = 19, xlab = "Tamaño de muestra", ylab = "Poder", main = "Poder frente al tamaño de muestra")
+}
+
+# Ejemplo: gráfico de poder para tamaño de muestra de 5 a 100
+grafico_poder_t(d = 0.5, max_n = 100)
+
+# ============================
+# PRUEBAS POST-HOC PARA ANOVA
+# ============================
+
+# Cálculo de poder para post-hoc en ANOVA de una vía (Tukey HSD)
+posthoc_tukey <- function(modelo_aov) {
+  resultado <- TukeyHSD(modelo_aov)
+  print(resultado)
+  cat("Interpretación:\n")
+  sig <- resultado[[1]][, "p adj"] < 0.05
+  print(data.frame(Diferencia = rownames(resultado[[1]]), Significativa = sig))
+}
+
+# Ejemplo: Crear un modelo ANOVA y realizar un post-hoc de Tukey
+data(iris)
+modelo_anova <- aov(Sepal.Length ~ Species, data = iris)
+posthoc_tukey(modelo_anova)
+
+# ============================
+# VISUALIZACIÓN DE RESULTADOS Y DIAGNÓSTICO GRÁFICO
+# ============================
+
+# Boxplot para ANOVA o Kruskal-Wallis
+grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  boxplot(formula_str, data = data, main = titulo, col = "lightblue", ylab = respuesta)
+}
+
+# Ejemplo: Boxplot de Sepal.Length por Species (para ANOVA)
+grafico_boxplot(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+# Diagnóstico gráfico para ANOVA en iris
+grafico_residuos_anova <- function(modelo_aov) {
+  par(mfrow = c(1, 2))
+  
+  # Residuos vs. valores ajustados
+  plot(modelo_aov, 1, main = "Residuos vs. Valores Ajustados")
+  
+  # Q-Q plot de residuos
+  plot(modelo_aov, 2, main = "Q-Q de Residuos")
+  
+  par(mfrow = c(1, 1))  # Resetear disposición gráfica
+}
+
+# Ejemplo: Diagnóstico de residuos para el modelo ANOVA
+grafico_residuos_anova(modelo_anova)
+
+# Gráfico de comparaciones de medias con Tukey
+grafico_comparacion_medias <- function(data, grupo, respuesta, metodo = "anova") {
+  library(ggplot2)
+  modelo <- aov(as.formula(paste(respuesta, "~", grupo)), data = data)
+  resultado <- TukeyHSD(modelo)
+  df_comparacion <- as.data.frame(resultado[[1]])
+  
+  ggplot(df_comparacion, aes(x = rownames(df_comparacion), y = diff, ymin = lwr, ymax = upr)) +
+    geom_pointrange() +
+    labs(x = "Comparaciones", y = "Diferencia de medias") +
+    theme_minimal()
+}
+
+# Ejemplo: Gráfico de comparaciones de medias con Tukey
+grafico_comparacion_medias(iris, grupo = "Species", respuesta = "Sepal.Length")
+# Cargar paquete necesario
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+
+# Estimación del poder para la prueba Kruskal-Wallis
+potencia_kruskal <- function(n, alpha = 0.05, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    grupo1 <- rnorm(n)
+    grupo2 <- rnorm(n)
+    grupo3 <- rnorm(n)
+    resultado <- kruskal.test(list(grupo1, grupo2, grupo3))
+    resultado$p.value < alpha
+  })
+  poder <- mean(resultados)
+  cat("Potencia de la prueba Kruskal-Wallis:", poder, "\n")
+}
+
+# Estimación del poder para la prueba de Wilcoxon (comparación de dos grupos)
+potencia_wilcoxon <- function(n, alpha = 0.05, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    grupo1 <- rnorm(n)
+    grupo2 <- rnorm(n)
+    resultado <- wilcox.test(grupo1, grupo2)
+    resultado$p.value < alpha
+  })
+  poder <- mean(resultados)
+  cat("Potencia de la prueba Wilcoxon:", poder, "\n")
+}
+
+# Estimación del poder para la prueba Chi-cuadrado
+# Estimación del poder para la prueba Chi-cuadrado (Generación correcta de la tabla de contingencia)
+potencia_chi2 <- function(tabla, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    # Generamos una tabla de contingencia 2x2 con valores aleatorios pero positivos
+    tabla_simulada <- matrix(sample(1:100, size = sum(tabla), replace = TRUE),
+                            nrow = 2, ncol = 2)  # Aseguramos que la tabla tenga valores positivos
+    resultado <- chisq.test(tabla_simulada)
+    resultado$p.value < 0.05
+  })
+  poder <- mean(resultados)
+  cat("Potencia de la prueba Chi-cuadrado:", poder, "\n")
+}
+
+# Ejemplo con una tabla 2x2
+tabla_chi2 <- matrix(c(20, 30, 25, 25), nrow = 2)
+potencia_chi2(tabla_chi2)
+
+# Estimación del poder para la prueba Exacta de Fisher
+potencia_fisher <- function(tabla, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    # Generamos una tabla de contingencia 2x2 con valores positivos
+    tabla_simulada <- matrix(sample(1:100, size = sum(tabla), replace = TRUE),
+                            nrow = 2, ncol = 2)  # Aseguramos que la tabla tenga valores positivos
+    resultado <- fisher.test(tabla_simulada)
+    resultado$p.value < 0.05
+  })
+  poder <- mean(resultados)
+  cat("Potencia de la prueba Exacta de Fisher:", poder, "\n")
+}
+
+# Ejemplo con una tabla 2x2
+tabla_fisher <- matrix(c(3, 1, 1, 3), nrow = 2)
+potencia_fisher(tabla_fisher)
+
+
+# Ejemplos
+# Potencia para Kruskal-Wallis
+potencia_kruskal(30)
+
+# Potencia para Wilcoxon
+potencia_wilcoxon(30)
+
+
+# ============================
+# CÁLCULO DE PODER Y TAMAÑO DE MUESTRA PARA ANOVA DE UNA VÍA
+# ============================
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+
+# Cálculo del poder para ANOVA de una vía (F)
+calcular_poder_anova <- function(d, n, k = 3, sig.level = 0.05) {
+  resultado <- pwr.anova.test(k = k, n = n, f = d, sig.level = sig.level)
+  print(resultado)
+}
+
+# Ejemplo: Poder de ANOVA con tamaño de efecto f = 0.25, 3 grupos y n = 30 por grupo
+calcular_poder_anova(d = 0.25, n = 30)
+
+# Cálculo del tamaño de muestra necesario para ANOVA de una vía (F)
+calcular_n_tamaño_anova <- function(d, power_deseado, k = 3, sig.level = 0.05) {
+  resultado <- pwr.anova.test(k = k, power = power_deseado, f = d, sig.level = sig.level)
+  print(resultado)
+}
+
+# Ejemplo: Tamaño de muestra necesario para poder de 0.9 con tamaño de efecto f = 0.25 y 3 grupos
+calcular_n_tamaño_anova(d = 0.25, power_deseado = 0.9)
+
+# ============================
+# ANÁLISIS ANOVA Y POST-HOC
+# ============================
+
+# Realizar ANOVA de una vía
+anova_una_via <- function(data, y, grupo, alpha = 0.05) {
+  formula_str <- as.formula(paste(y, "~", grupo))
+  modelo <- aov(formula_str, data = data)
+  resumen <- summary(modelo)
+  print(resumen)
+  
+  p <- resumen[[1]][["Pr(>F)"]][1]
+  if (p < alpha) {
+    cat("❌ Se rechaza H₀: al menos un grupo difiere\n")
+  } else {
+    cat("✅ No se rechaza H₀: no hay diferencias significativas\n")
+  }
+  
+  return(invisible(modelo))
+}
+
+# Ejemplo: ANOVA de Sepal.Length entre Species en el dataset iris
+data(iris)
+anova_una_via(iris, y = "Sepal.Length", grupo = "Species")
+
+# Post-hoc Tukey HSD para ANOVA
+posthoc_tukey <- function(modelo_aov) {
+  resultado <- TukeyHSD(modelo_aov)
+  print(resultado)
+  cat("Interpretación:\n")
+  sig <- resultado[[1]][, "p adj"] < 0.05
+  print(data.frame(Diferencia = rownames(resultado[[1]]), Significativa = sig))
+}
+
+# Ejemplo: Crear un modelo ANOVA y realizar un post-hoc de Tukey
+modelo_anova <- aov(Sepal.Length ~ Species, data = iris)
+posthoc_tukey(modelo_anova)
+
+# ============================
+# VISUALIZACIÓN DE RESULTADOS ANOVA
+# ============================
+
+# Boxplot para ANOVA
+grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  boxplot(formula_str, data = data, main = titulo, col = "lightblue", ylab = respuesta)
+}
+
+# Ejemplo: Boxplot de Sepal.Length por Species (para ANOVA)
+grafico_boxplot(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+# Diagnóstico gráfico para ANOVA en iris
+grafico_residuos_anova <- function(modelo_aov) {
+  par(mfrow = c(1, 2))
+  
+  # Residuos vs. valores ajustados
+  plot(modelo_aov, 1, main = "Residuos vs. Valores Ajustados")
+  
+  # Q-Q plot de residuos
+  plot(modelo_aov, 2, main = "Q-Q de Residuos")
+  
+  par(mfrow = c(1, 1))  # Resetear disposición gráfica
+}
+
+# Ejemplo: Diagnóstico de residuos para el modelo ANOVA
+grafico_residuos_anova(modelo_anova)
+
+# Gráfico de comparaciones de medias con Tukey
+grafico_comparacion_medias <- function(data, grupo, respuesta, metodo = "anova") {
+  library(ggplot2)
+  modelo <- aov(as.formula(paste(respuesta, "~", grupo)), data = data)
+  resultado <- TukeyHSD(modelo)
+  df_comparacion <- as.data.frame(resultado[[1]])
+  
+  ggplot(df_comparacion, aes(x = rownames(df_comparacion), y = diff, ymin = lwr, ymax = upr)) +
+    geom_pointrange() +
+    labs(x = "Comparaciones", y = "Diferencia de medias") +
+    theme_minimal()
+}
+
+# Ejemplo: Gráfico de comparaciones de medias con Tukey
+grafico_comparacion_medias(iris, grupo = "Species", respuesta = "Sepal.Length")
+
+```
+```{r}
+# ===========================================
+# CARGA DE PAQUETES NECESARIOS
+# ===========================================
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if(!require(car)) install.packages("car"); library(car)
+if(!require(ez)) install.packages("ez"); library(ez)
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+if(!require(lme4)) install.packages("lme4"); library(lme4)
+if(!require(emmeans)) install.packages("emmeans"); library(emmeans)
+
+# ===========================================
+# CÁLCULO DE PODER PARA ANOVA DE MEDIDAS REPETIDAS
+# ===========================================
+calcular_poder_anova_repetidas <- function(n_sujetos, alpha = 0.05, n_simulaciones = 10) {
+  resultados <- replicate(n_simulaciones, {
+    # Simulamos los datos de los sujetos y las condiciones
+    # Asumimos que tenemos tres condiciones (dificultad baja, media, alta)
+    tiempo_baja <- rnorm(n_sujetos, mean = 20, sd = 5)
+    tiempo_media <- rnorm(n_sujetos, mean = 25, sd = 5)
+    tiempo_alta <- rnorm(n_sujetos, mean = 30, sd = 5)
+    
+    # Ejecutamos el ANOVA de medidas repetidas con la función ezANOVA
+    data_simulada <- data.frame(tiempo = c(tiempo_baja, tiempo_media, tiempo_alta),
+                                dificultad = rep(c("Baja", "Media", "Alta"), each = n_sujetos),
+                                id = rep(1:n_sujetos, times = 3))
+    
+    # Realizamos ANOVA de medidas repetidas
+    prueba <- ezANOVA(data = data_simulada, dv = tiempo, wid = id, within = dificultad, return_aov = TRUE)
+    p_anova <- prueba$ANOVA$p[1]
+    p_anova < alpha
+  })
+  
+  poder <- mean(resultados)
+  cat("Potencia de la prueba ANOVA de medidas repetidas:", poder, "\n")
+}
+
+# Ejemplo: Calcular el poder para 30 sujetos en 1000 simulaciones
+calcular_poder_anova_repetidas(n_sujetos = 30)
+
+# ===========================================
+# VERIFICACIÓN DE NORMALIDAD Y HOMOCEDASTICIDAD
+# ===========================================
+# Verificar la normalidad de los residuos de ANOVA
+verificar_normalidad_residuos <- function(modelo_aov) {
+  residuos <- residuals(modelo_aov)
+  resultado_normalidad <- shapiro.test(residuos)
+  cat("p-valor Shapiro-Wilk para los residuos:", resultado_normalidad$p.value, "\n")
+  if (resultado_normalidad$p.value < 0.05) {
+    cat("⚠️ Los residuos NO siguen una distribución normal.\n")
+  } else {
+    cat("✅ Los residuos siguen una distribución normal.\n")
+  }
+}
+
+# Verificar homocedasticidad (igualdad de varianzas)
+verificar_homocedasticidad <- function(data, grupo, respuesta) {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  resultado <- leveneTest(formula_str, data = data)
+  print(resultado)
+  if (resultado$`Pr(>F)`[1] < 0.05) {
+    cat("⚠️ Las varianzas NO son homogéneas entre los grupos.\n")
+  } else {
+    cat("✅ Las varianzas son homogéneas entre los grupos.\n")
+  }
+}
+
+# Ejemplo de verificación de normalidad y homocedasticidad en el dataset 'leyes'
+verificar_normalidad_residuos(modelo_anova)  # Después de realizar ANOVA
+verificar_homocedasticidad(leyes, grupo = "dificultad", respuesta = "tiempo")
+
+# ===========================================
+# TRANSFORMACIONES DE DATOS (Logaritmica o Tukey)
+# ===========================================
+# Aplicar una transformación logarítmica a la variable 'tiempo'
+transformacion_log <- function(x) {
+  log_x <- log(x + 1)  # Evitar log(0)
+  return(log_x)
+}
+
+# Transformación logarítmica de la variable 'tiempo'
+leyes$tiempo_log <- transformacion_log(leyes$tiempo)
+
+# Visualizar la diferencia antes y después de la transformación
+par(mfrow = c(1, 2))
+hist(leyes$tiempo, main = "Tiempo Original", col = "skyblue", xlab = "Tiempo")
+hist(leyes$tiempo_log, main = "Tiempo Logarítmico", col = "steelblue", xlab = "Tiempo (Log)")
+
+# ===========================================
+# MODELO MIXTO: Evaluación de Efectos Aleatorios
+# ===========================================
+# Crear un modelo mixto usando efectos aleatorios para sujetos
+mixto <- lme(tiempo ~ dificultad, data = leyes, random = ~1|id)
+
+# Resumen del modelo
+summary(mixto)
+
+# Evaluación de los residuos de efectos aleatorios
+# Visualización de los residuos de efectos aleatorios
+plot(residuals(mixto), main = "Residuos de Efectos Aleatorios")
+qqnorm(residuals(mixto))
+qqline(residuals(mixto))
+
+# Verificar los efectos aleatorios significativos (si es necesario)
+anova(mixto)
+
+# ===========================================
+# CÁLCULO DE PODER PARA EL MODELO MIXTO
+# ===========================================
+# Simulaciones para calcular el poder de modelos mixtos
+calcular_poder_modelo_mixto <- function(n_sujetos, alpha = 0.05, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    # Simulación de datos para 3 condiciones
+    tiempo_baja <- rnorm(n_sujetos, mean = 20, sd = 5)
+    tiempo_media <- rnorm(n_sujetos, mean = 25, sd = 5)
+    tiempo_alta <- rnorm(n_sujetos, mean = 30, sd = 5)
+    
+    # Simulación de datos de sujeto
+    data_simulada <- data.frame(tiempo = c(tiempo_baja, tiempo_media, tiempo_alta),
+                                dificultad = rep(c("Baja", "Media", "Alta"), each = n_sujetos),
+                                id = rep(1:n_sujetos, times = 3))
+    
+    # Realizar el modelo mixto
+    modelo_mixto <- lme(tiempo ~ dificultad, data = data_simulada, random = ~1|id)
+    
+    # Evaluar el p-valor de la prueba para los efectos fijos
+    resultado <- summary(modelo_mixto)
+    p_valor <- coef(resultado)$fixed[2,4]  # p-valor de la dificultad
+    p_valor < alpha
+  })
+  
+  poder <- mean(resultados)
+  cat("Potencia del modelo mixto:", poder, "\n")
+}
+
+# Ejemplo: Calcular el poder para 30 sujetos en 1000 simulaciones
+calcular_poder_modelo_mixto(n_sujetos = 30)
+
+```
+

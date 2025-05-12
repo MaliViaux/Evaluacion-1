@@ -1,0 +1,105 @@
+
+
+```{r}
+
+if (!requireNamespace('ggpattern', quietly = TRUE)){
+  install.packages('ggpattern')
+}
+library(ggpattern)
+if (!requireNamespace('dplyr', quietly = TRUE)){
+  install.packages('dplyr')
+}
+library(dplyr)
+if (!requireNamespace('ggplot2', quietly = TRUE)){
+  install.packages('ggplot2')
+}
+library(ggplot2)
+if (!requireNamespace('ggpubr', quietly = TRUE)){
+  install.packages('ggpubr')
+}
+library(ggpubr)
+if (!requireNamespace('pwr', quietly = TRUE)){
+  install.packages('pwr')
+}
+library(pwr)
+
+library(tidyr)
+if (!requireNamespace('tidyr', quietly = TRUE)){
+  install.packages('tidyr')
+}
+library(tidyr)
+library(ez)
+# Cargamos las librerías necesarias para anova
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(pwr)
+library(tidyr)
+library(ez)
+# Cargamos los datos
+
+# Leemos los datos del CSV
+datos <- read.csv2("EI-2025-1-PE1-Datos.csv")
+# Mostramos los datos iniciales
+head(datos)
+```
+
+#pregunta 1
+```{r}
+#las variables son Id, Titulo, Consola, America, Europa, Japon, Otro
+#filtramos por super nintendo
+datos_sp <- datos %>% filter(Consola == "Super Nintendo") %>% select(Id, Titulo, Consola, America, Europa,
+
+#print de datos
+head(datos_sp)
+
+#hipotesis nula:  mismo nivel de popularidad en todas las regiones
+#hipotesis alternativa: diferente nivel de popularidad en todas las regiones
+#realizamos la prueba de anova
+anova_sp <- aov(America ~ Europa + Japon + Otro, data = datos_sp)
+summary(anova_sp)
+
+#rechaza o no la hipotesis nula
+#si el p-value es menor a 0.05, se rechaza la hipotesis nula
+#si el p-value es mayor a 0.05, no se rechaza la hipotesis nula
+if(anova_sp$`Pr(>F)`[1] < 0.05){
+  print("Se rechaza la hipotesis nula")
+} else {
+  print("No se rechaza la hipotesis nula")
+}
+
+#realizamos la prueba de shapiro-wilk
+shapiro_test <- shapiro.test(datos_sp$America)
+shapiro_test
+#realizamos la prueba de bartlett
+bartlett_test <- bartlett.test(America ~ Europa + Japon + Otro, data = datos_sp)
+bartlett_test
+#realizamos la prueba de tukey
+tukey_test <- TukeyHSD(anova_sp)
+tukey_test
+#realizamos la prueba de post-hoc
+posthoc_test <- pairwise.t.test(datos_sp$America, datos_sp$Europa, p.adjust.method = "bonferroni")
+posthoc_test
+#realizamos la prueba de kruskal-wallis
+kruskal_test <- kruskal.test(America ~ Europa + Japon + Otro, data = datos_sp)
+kruskal_test
+#realizamos la prueba de wilcoxon
+wilcoxon_test <- wilcox.test(America ~ Europa + Japon + Otro, data = datos_sp)
+wilcoxon_test
+#realizamos la prueba de friedman
+friedman_test <- friedman.test(America ~ Europa + Japon + Otro, data = datos_sp)
+friedman_test
+
+```
+
+#pregunta 2
+```{r}
+#filtramos por europa gameboy
+datos_g_eu <- datos %>% filter(Consola == "Gameboy") %>% select(Id, Titulo, Consola, Europa)
+#filtramos por europa xbox
+datos_g_eu <- datos %>% filter(Consola == "XBox") %>% select(Id, Titulo, Consola, Europa)
+
+head(datos_g_eu)
+head(datos_g_eu)
+```
+

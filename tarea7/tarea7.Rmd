@@ -1,0 +1,167 @@
+---
+title: "tarea7"
+author: "Andre Cosio"
+date: "2025-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1. **Carga y preparación de los datos**
+
+Primero, cargamos los datos desde el archivo "EP07 Datos.csv" y verificamos las primeras filas para asegurarnos de que los datos están correctamente cargados.
+
+```{r}
+# Cargar los datos desde el archivo "EP07 Datos.csv"
+datos <- read.csv("EP07 Datos.csv")
+
+# Verificar los primeros registros y nombres de columnas
+head(datos)
+```
+
+Filtramos los datos para obtener las instancias con 60 o más nodos y 45 o más nodos, según sea necesario para cada pregunta.
+
+```{r}
+# Filtro los datos para obtener las instancias con 60 o más nodos
+datos_60_nodos <- subset(datos, n.nodos >= 60)
+
+# Filtro los datos para obtener las instancias con 45 o más nodos
+datos_45_nodos <- subset(datos, n.nodos >= 45)
+```
+
+### 2. **Análisis para la Pregunta 1**
+
+**Pregunta:**  
+¿Los datos respaldan la intuición de la memorista respecto a diferencias significativas en el tiempo de ejecución entre las versiones A y C del algoritmo cuando las instancias tienen 60 o más nodos?
+
+**Hipótesis:**
+- **H0**: No hay diferencia en el tiempo de ejecución entre las versiones A y C.
+- **HA**: Hay una diferencia significativa en el tiempo de ejecución entre las versiones A y C.
+
+**Método:**  
+Dado que los datos de la versión A no siguen una distribución normal (p-valor de Shapiro-Wilk = 0.009517), utilizamos una prueba no paramétrica de Wilcoxon.
+
+```{r}
+# Extraemos los tiempos de ejecución de las versiones A y C
+version_a <- datos_60_nodos$tiempo.A
+version_c <- datos_60_nodos$tiempo.C
+
+# semilla para reproductividad
+set.seed(33)
+
+# Tomamos muestras aleatorias de 24 para A y 18 para C
+muestra_a <- sample(version_a, 24)
+muestra_c <- sample(version_c, 18)
+
+# Realizamos la prueba de Wilcoxon
+wilcoxon_test <- wilcox.test(muestra_a, muestra_c, alternative = "two.sided")
+print(wilcoxon_test)
+```
+
+**Resultados:**  
+El p-valor obtenido es **0.9299**, que es mayor que 0.05. Por lo tanto, no podemos rechazar la hipótesis nula y concluimos que no hay diferencias significativas entre las versiones A y C.
+
+**Conclusión:**  
+No, los datos no respaldan la intuición de la memorista. No se encontró evidencia suficiente para afirmar que hay diferencias significativas en el tiempo de ejecución entre las versiones A y C.
+
+### 3. **Análisis para la Pregunta 2**
+
+**Pregunta:**  
+¿La memorista está en lo cierto sobre las diferencias en el rendimiento de las versiones A y B cuando las mismas instancias de prueba tienen 60 o más nodos?
+
+**Hipótesis:**
+- **H0**: No hay diferencia en el rendimiento entre las versiones A y B.
+- **HA**: Hay una diferencia significativa en el rendimiento entre las versiones A y B.
+
+**Método:**  
+Realizamos la prueba de Wilcoxon para comparar el rendimiento entre las versiones A y B.
+
+```{r}
+# Extraemos las columnas con el mejor rendimiento de las versiones A y B
+mejor_a <- datos_60_nodos$mejor.A
+mejor_b <- datos_60_nodos$mejor.B
+set.seed(33)
+
+# Tomamos una muestra aleatoria de 22 para A y B
+muestra_a_b <- sample(mejor_a, 22)
+muestra_b_b <- sample(mejor_b, 22)
+
+# Realizamos la prueba de Wilcoxon
+wilcoxon_test_ab <- wilcox.test(muestra_a_b, muestra_b_b, alternative = "two.sided")
+print(wilcoxon_test_ab)
+```
+
+**Resultados:**  
+El p-valor es **6.594e-05**, que es menor que 0.05, por lo que rechazamos la hipótesis nula y concluimos que hay una diferencia significativa en el rendimiento entre las versiones A y B.
+
+**Conclusión:**  
+Sí, la memorista está en lo cierto. Los datos respaldan la intuición de que hay una diferencia significativa en el rendimiento entre las versiones A y B cuando las instancias tienen 60 o más nodos.
+
+### 4. **Análisis para la Pregunta 3**
+
+**Pregunta:**  
+¿Los datos respaldan la intuición de la memorista respecto a diferencias significativas en el tiempo de ejecución entre las versiones del algoritmo cuando las instancias de prueba tienen 45 o más nodos?
+
+**Hipótesis:**
+- **H0**: No hay diferencia en el tiempo de ejecución entre las versiones A, B y C.
+- **HA**: Hay una diferencia significativa en el tiempo de ejecución entre las versiones A, B y C.
+
+**Método:**  
+Se utiliza la prueba de **Kruskal-Wallis** para comparar las versiones A, B y C en cuanto al tiempo de ejecución con 45 o más nodos.
+
+```{r}
+# Extraemos los tiempos de ejecución de las versiones A, B y C
+version_a_45 <- datos_45_nodos$tiempo.A
+version_b_45 <- datos_45_nodos$tiempo.B
+version_c_45 <- datos_45_nodos$tiempo.C
+
+set.seed(43)
+
+# Tomamos muestras aleatorias de 15 para A, 15 para B y 14 para C
+muestra_a_45 <- sample(version_a_45, 15)
+muestra_b_45 <- sample(version_b_45, 15)
+muestra_c_45 <- sample(version_c_45, 14)
+
+# Realizamos la prueba de Kruskal-Wallis
+kruskal_test <- kruskal.test(list(muestra_a_45, muestra_b_45, muestra_c_45))
+print(kruskal_test)
+```
+
+**Resultados:**  
+El p-valor es **0.01347**, lo que es menor que 0.05, indicando que hay diferencias significativas entre las versiones A, B y C en cuanto al tiempo de ejecución.
+
+**Conclusión:**  
+Sí, los datos respaldan la intuición de la memorista, ya que se encontraron diferencias significativas en los tiempos de ejecución entre las versiones A, B y C cuando las instancias tienen 45 o más nodos.
+
+### 5. **Análisis para la Pregunta 4**
+
+**Pregunta:**  
+¿La memorista está en lo cierto sobre las diferencias en los mejores rendimientos de las versiones del algoritmo cuando las instancias de prueba tienen 45 o más nodos?
+
+**Hipótesis:**
+- **H0**: Los mejores rendimientos de las versiones A, B y C son iguales.
+- **HA**: Al menos una de las versiones tiene un rendimiento diferente.
+
+**Método:**  
+Realizamos un análisis post-hoc de Wilcoxon para comparar los rendimientos entre las versiones A, B y C.
+
+```{r}
+# Realizamos un análisis post-hoc si la prueba de Kruskal-Wallis es significativa
+if (kruskal_test$p.value < 0.05) {
+  post_hoc_test <- pairwise.wilcox.test(c(muestra_a_45, muestra_b_45, muestra_c_45),
+                                       c(rep("A", length(muestra_a_45)), rep("B", length(muestra_b_45)), rep("C", length(muestra_c_45))),
+                                       p.adjust.method = "holm")
+  print(post_hoc_test)
+}
+```
+
+**Resultados:**  
+La comparación entre A y B resultó significativa (p-valor = 0.030), pero las comparaciones entre **A y C** (p-valor = 0.146) y **B y C** (p-valor = 0.073) no fueron significativas.
+
+**Conclusión:**  
+No, la memorista no tenia razon, solo entre A y B es significativa. Las diferencias entre **A y C**, y **B y C** no fueron significativas.
+
+---
+

@@ -1,0 +1,98 @@
+---
+title: "inferencia con una y dos muestras"
+author: "Andre Cosio"
+date: "2025-03-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+suppressWarnings(suppressMessages({
+  if (!require("ggpubr")) install.packages("ggpubr")
+  if (!require("dplyr")) install.packages("dplyr")
+  if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
+  if (!require("gridExtra")) install.packages("gridExtra")
+  if (!require("tidyr")) install.packages("tidyr")
+  library(tidyr)
+  library(dplyr)
+  library(ggplot2)
+  library(gridExtra)
+  library(ggpubr)
+}))
+
+
+```
+
+```{r}
+# --- CARGO PAQUETES ---
+suppressWarnings(suppressMessages({
+  library(dplyr)
+  library(ggplot2)
+}))
+
+# --- CARGO DATOS ---
+datos2 <- read.csv2(file.choose())
+
+
+# --- CONVERSIÓN A NUMÉRICO ---
+datos2$Previo <- as.numeric(gsub(",", ".", datos2$Previo))
+datos2$Posterior <- as.numeric(gsub(",", ".", datos2$Posterior))
+
+
+# --- Filtrado ---
+datosoriental <- datos2 %>% filter(Raza == "Oriental")
+datosblanca <- datos2 %>% filter(Raza == "Blanca")
+
+# --- FILTRO POR CONDICIÓN ---
+orientalMejorado <- datosoriental %>% filter((Previo - Posterior) >= 5.5)
+blancaMejorado <- datosblanca %>% filter((Previo - Posterior) >= 3)
+
+# --- Contamos los exitos y los totales ---
+orientalExito <- nrow(orientalMejorado)
+blancaExito <- nrow(blancaMejorado)
+
+orientalTotal <- nrow(datosoriental)
+blancaTotal <- nrow(datosblanca)
+
+
+```
+Proporción Exito orientales 1 de 27 
+
+Proporción Exito blancos 11 de 26
+
+```{r}
+
+# ---listas para prop.test ---
+listaMejorado <- numeric(2)
+listaMejorado[1] <- orientalExito
+listaMejorado[2] <- blancaExito
+
+listaN <- numeric(2)
+listaN[1] <- orientalTotal
+listaN[2] <- blancaTotal
+
+# --- PRUEBA DE PROPORCIONES ---
+
+# Construimos la tabla de contingencia
+tabla <- matrix(c(1, 26, 11, 15), nrow = 2, byrow = TRUE,
+                dimnames = list(Raza = c("Oriental", "Blanca"),
+                                Resultado = c("Éxito", "Fracaso")))
+
+# Prueba exacta de Fisher (hipótesis alternativa: menor)
+resultado_fisher <- fisher.test(tabla, alternative = "less")
+
+# Mostrar tabla y resultado
+print(tabla)
+print(resultado_fisher)
+
+
+# Evaluo p-value segun la condicion
+
+```
+Al evaluarlo con nivel de confianza de 0.05, podemos y siendo p-value=0.0008181, podemos decir que:
+
+Se rechaza H0: hay evidencia de que la proporción de mejora oriental es menor que la de blanca.
+

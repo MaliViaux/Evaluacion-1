@@ -1,0 +1,3046 @@
+---
+title: "ejemplos"
+author: "Andre Cosio"
+date: "2025-05-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# 1. Cargar un conjunto de datos disponible en R
+datos1 <- mtcars  # Usamos mtcars como ejemplo, puedes usar otros datasets
+
+# 2. Importar desde un archivo de texto plano delimitado por tabuladores
+# Vamos a crear datos sintéticos como si provinieran de un archivo .txt
+datos2 <- data.frame(
+  ID = 1:3,
+  Nombre = c("Carlos", "Ana", "Pedro"),
+  Edad = c(30, 25, 40)
+)
+
+# 3. Importar desde un archivo de valores separados por coma en formato inglés
+# Simulamos un archivo CSV con datos en inglés
+datos3 <- data.frame(
+  Name = c("Alan", "Zacarías", "Elsa"),
+  Age = c(28, 35, 32),
+  City = c("Santiago", "Valparaíso", "Concepción")
+)
+#dir.create("C:/Inferencia")  # Crea el directorio
+
+# 4. Configurar carpeta de trabajo
+setwd("C:/Inferencia")  # Configuramos el directorio de trabajo
+
+# 5. Importar desde un archivo de valores separados por coma en formato español
+# Simulamos otro archivo CSV en español
+datos4 <- data.frame(
+  Nombre = c("José", "Marta", "Ricardo"),
+  Edad = c(27, 33, 29),
+  Ciudad = c("Madrid", "Barcelona", "Sevilla")
+)
+
+# 6. Mostrar las primeras 6 filas del conjunto de datos almacenado en datos1
+head(datos1)
+
+# 7. Mostrar las últimas 6 filas del conjunto de datos almacenado en datos1
+tail(datos1)
+
+# 8. Instalar e importar paquetes necesarios
+install.packages("ggpubr")
+library(ggpubr)
+install.packages("dplyr")
+library(dplyr)
+
+# 9. Crear un vector de strings con nombres
+nombre <- c("Alan Brito Delgado", "Zacarías Labarca del Río", "Elsa Payo Maduro")
+
+# 10. Crear un vector de fechas con fechas de nacimiento
+fecha_nacimiento <- as.Date(c("2008-01-25", "2006-10-04", "2008-03-27"))
+
+# 11. Crear tres vectores de valores numéricos y guardarlos en variables
+prueba_1 <- c(5.5, 3.4, 4.5)
+prueba_2 <- c(3.2, 4.7, 4.1)
+prueba_3 <- c(4.8, 4.3, 5.1)
+
+# 12. Crear un dataframe a partir de los vectores anteriores
+dataframe <- data.frame(nombre, fecha_nacimiento, prueba_1, prueba_2, prueba_3, stringsAsFactors = FALSE)
+
+# 13. Guardar el dataframe en un archivo CSV
+write.csv2(dataframe, "Ejemplo.csv", row.names = FALSE)
+
+# 14. Leer un archivo CSV
+datos <- read.csv2("Ejemplo.csv", stringsAsFactors = FALSE)
+
+# 15. Eliminar la columna 'fecha_nacimiento' del dataframe
+datos$fecha_nacimiento <- NULL
+
+# 16. Agregar una nueva columna 'edad' al dataframe
+datos$edad <- c(23, 25, 23)
+
+# 17. Crear una nueva observación y agregarla al dataframe
+nueva <- data.frame(nombre = "Elba Calao del Río", prueba_1 = 6.4, prueba_2 = 2.3, prueba_3 = 4.6, edad = 24)
+datos <- rbind(datos, nueva)
+
+# 18. Eliminar las primeras 3 observaciones del dataframe
+datos <- datos[-c(1:3),]
+
+# 19. Guardar el dataframe modificado en un archivo CSV
+write.csv2(datos, "Ejemplo_mod.csv", row.names = FALSE)
+
+# 20. Cargar el dataframe iris que viene incluido en R
+datos_iris <- iris
+
+# 21. Filtrar las observaciones correspondientes a la especie 'versicolor'
+versicolor <- datos_iris %>% filter(Species == "versicolor")
+
+# 22. Filtrar las observaciones de 'versicolor' con sepalo de longitud mayor o igual a 6 cm
+largas <- datos_iris %>% filter(Species == "versicolor" & Sepal.Length >= 6)
+
+# 23. Seleccionar solo las variables relacionadas con los pétalos
+petalos <- datos_iris %>% select(Species, starts_with("Petal"))
+
+# 24. Seleccionar variables de ancho de pétalo y especie
+anchos <- datos_iris %>% select(ends_with("Width"), Species)
+
+# 25. Crear una nueva variable en el dataframe petalos con la razón entre longitud y ancho de los pétalos
+petalos <- petalos %>% mutate(Petal.Ratio = Petal.Length / Petal.Width)
+
+# 26. Ordenar el conjunto de datos petalos de forma descendente según la razón de los pétalos
+petalos <- petalos %>% arrange(desc(Petal.Ratio))
+
+# 27. Ordenar el conjunto de datos petalos de forma ascendente según la longitud de los pétalos
+petalos <- petalos %>% arrange(Petal.Length)
+
+# 28. Verificar normalidad de los datos con gráficos Q-Q
+library(ggplot2)
+ggqqplot(datos_iris$Sepal.Length, title = "QQ Plot para la Longitud del Sépalo")
+
+# 29. Calcular el valor esperado, varianza y desviación estándar de una variable aleatoria discreta
+resultados <- c(1, 2, 3, 4, 5, 6)
+probabilidades <- c(0.25, 0.125, 0.125, 0.125, 0.125, 0.25)
+
+# Calcular el valor esperado
+esperado <- sum(resultados * probabilidades)
+cat("Valor esperado:", esperado, "\n")
+
+# Calcular la varianza
+varianza <- sum(((resultados - esperado) ^ 2) * probabilidades)
+cat("Varianza:", varianza, "\n")
+
+# Calcular la desviación estándar
+desviacion <- sqrt(varianza)
+cat("Desviación estándar:", desviacion, "\n")
+
+# 30. Calcular una prueba Z para una muestra
+muestra <- c(19.33, 29.37, 29.14, 32.10, 25.04, 22.22, 31.26, 26.92, 31.40, 17.66, 22.55, 20.69, 24.68, 28.74, 26.85, 29.68, 29.27, 26.72, 27.08, 20.62)
+desv_est <- 2.32
+n <- length(muestra)
+valor_nulo <- 20
+
+# Calcular el estadístico Z
+Z <- (mean(muestra) - valor_nulo) / (desv_est / sqrt(n))
+cat("Estadístico Z:", Z, "\n")
+
+# Calcular el valor p de la prueba Z
+p <- 2 * pnorm(Z, lower.tail = FALSE)
+cat("Valor p:", p, "\n")
+
+# 31. Realizar una prueba t de Student para una muestra
+t.test(muestra, mu = 500, alternative = "less")
+
+```
+
+```{r}
+# Cargar el conjunto de datos mtcars
+datos <- mtcars
+
+# Calcular la media para la variable 'mpg' (Rendimiento)
+media <- mean(datos[["mpg"]])  # 'mpg' es la columna para Rendimiento
+cat("Rendimiento medio: ", media, "\n\n")
+
+# Calcular la media para las tercera y quinta columnas (Desplazamiento y Eje)
+cat("Medias\n")
+print(sapply(datos[c(3, 5)], mean))
+cat("\n")
+
+# Calcular la media para las columnas 3 a 6 (Desplazamiento, Potencia, Eje, Peso)
+cat("Medias\n")
+print(sapply(datos[3:6], mean))
+cat("\n")
+
+# Calcular la media para la variable 'mpg' omitiendo valores faltantes
+cat("Media sin valores faltantes para Rendimiento (mpg):\n")
+print(mean(datos[["mpg"]], na.rm = TRUE))
+
+# Cálculo de percentiles para la variable 'mpg' (Rendimiento)
+cat("Cuartiles:\n")
+print(quantile(datos[["mpg"]]))
+cat("\n")
+
+cat("Quintiles:\n")
+print(quantile(datos[["mpg"]], seq(0, 1, 0.2)))
+cat("\n")
+
+cat("Deciles:\n")
+print(quantile(datos[["mpg"]], seq(0, 1, 0.1)))
+cat("\n")
+
+cat("Percentiles:\n")
+print(quantile(datos[["mpg"]], seq(0, 1, 0.01)))
+cat("\n")
+
+# Cálculo de varias medidas para la variable 'hp' (Potencia)
+medidas_potencia <- datos %>%
+  summarise(
+    Media = mean(hp),   # Reemplazamos 'Potencia' por 'hp'
+    Mediana = median(hp),
+    Varianza = var(hp),
+    IQR = IQR(hp)
+  )
+print(medidas_potencia)
+cat("\n")
+
+# Cálculo de la media y la desviación estándar para las variables 'wt' (Peso) y 'qsec' (Cuarto_milla)
+medidas_varias <- datos %>%
+  summarise(
+    Media_P = mean(wt),     # Reemplazamos 'Peso' por 'wt'
+    Media_C = median(qsec), # 'qsec' es el tiempo de cuarto de milla
+    SD_P = sd(wt),
+    SD_C = sd(qsec)
+  )
+print(medidas_varias)
+cat("\n")
+
+# Crear tabla de contingencia para la variable 'am' (Transmisión: 0 = automática, 1 = manual)
+contingencia <- table(datos[["am"]])
+cat("Tabla de contingencia generada con table() para 'am' (Transmisión):\n")
+print(contingencia)
+cat("\n")
+
+# Otra forma de crear la misma tabla con xtabs()
+contingencia_xtabs <- xtabs(~ am, data = datos)
+cat("Tabla de contingencia generada con xtabs() para 'am' (Transmisión):\n")
+print(contingencia_xtabs)
+cat("\n")
+
+# Calcular totales por fila y mostrarlos por separado
+totales <- marginSums(contingencia_xtabs)
+cat("Totales por fila:\n")
+print(totales)
+cat("\n")
+
+# Calcular totales por fila y agregarlos a la tabla
+con_totales <- addmargins(contingencia_xtabs, 1)
+cat("Tabla de contingencia con totales por fila:\n")
+print(con_totales)
+cat("\n")
+
+# Convertir a tabla de proporciones
+proporciones <- prop.table(contingencia_xtabs)
+proporciones <- addmargins(proporciones, 1)
+cat("Tabla de contingencia con proporciones:\n")
+print(proporciones)
+cat("\n")
+
+# Convertir a tabla de porcentajes con 2 decimales
+porcentajes <- round(prop.table(contingencia_xtabs), 4) * 100
+porcentajes <- addmargins(porcentajes)
+cat("Tabla de contingencia con porcentajes:\n")
+print(porcentajes)
+cat("\n")
+
+# Crear tabla de contingencia para las variables 'am' y 'cyl'
+contingencia_transmision <- table(datos[["am"]], datos[["cyl"]])
+cat("Tabla de contingencia generada con table() para 'am' (Transmisión) y 'cyl' (Cilindrada):\n")
+print(contingencia_transmision)
+cat("\n")
+
+# Otra forma de crear la misma tabla con xtabs()
+contingencia_transmision_xtabs <- xtabs(~ am + cyl, data = datos)
+cat("Tabla de contingencia generada con xtabs() para 'am' (Transmisión) y 'cyl' (Cilindrada):\n")
+print(contingencia_transmision_xtabs)
+cat("\n")
+
+# Proporciones con totales por fila
+proporciones_fila <- prop.table(contingencia_transmision_xtabs, margin = 1)
+proporciones_fila <- addmargins(proporciones_fila, margin = 2)
+cat("Tabla de contingencia con proporciones totales por fila:\n")
+print(proporciones_fila)
+cat("\n")
+
+# Proporciones con totales por columna
+proporciones_columna <- prop.table(contingencia_transmision_xtabs, margin = 2)
+proporciones_columna <- addmargins(proporciones_columna)
+cat("Tabla de contingencia con proporciones totales por columna:\n")
+print(proporciones_columna)
+cat("\n")
+
+# Proporciones con totales
+proporciones_totales <- prop.table(contingencia_transmision_xtabs)
+proporciones_totales <- addmargins(proporciones_totales)
+cat("Tabla de contingencia con proporciones totales:\n")
+print(proporciones_totales)
+cat("\n")
+
+# Histograma para la variable 'mpg' (Rendimiento)
+g1 <- gghistogram(
+  datos, 
+  x = "mpg", 
+  bins = 10, 
+  add = "mean", 
+  xlab = "Rendimiento [Millas / galón]", 
+  ylab = "Frecuencia", 
+  color = "blue", 
+  fill = "blue"
+)
+print(g1)
+
+# Histograma para la variable 'hp' (Potencia)
+g2 <- gghistogram(
+  datos, 
+  x = "hp", 
+  bins = 10, 
+  add = "mean", 
+  xlab = "Potencia [hp]", 
+  ylab = "Frecuencia", 
+  color = "red", 
+  fill = "yellow"
+)
+print(g2)
+
+# Crear gráfico de caja para la variable 'hp' (Potencia)
+g3 <- ggboxplot(
+  datos[["hp"]],
+  color = "steelblue",
+  fill = "steelblue",
+  ylab = "Potencia [hp]"
+)
+g3 <- g3 + rremove("x.ticks") + rremove("x.text") + rremove("x.title")
+print(g3)
+
+# Crear tabla de frecuencias para la variable 'am' (Transmisión) y convertirla a data frame
+contingencia <- as.data.frame(xtabs(~ am, data = datos))
+library(ggpubr)
+library(dplyr)
+library(ggplot2)
+
+# Cargar el conjunto de datos mtcars
+datos <- mtcars
+
+# Crear la variable 'Cambios' artificialmente (simulando transmisión manual/automática)
+# Por ejemplo, asignamos 'am' de mtcars (0 = automática, 1 = manual)
+# Convertimos 'am' en categorías más legibles: "Automático" y "Manual"
+datos$Cambios <- factor(datos$am, levels = c(0, 1), labels = c("Automático", "Manual"))
+
+# Crear tabla de contingencia para la variable 'Cambios'
+contingencia <- as.data.frame(xtabs(~ Cambios, data = datos))
+
+# Crear gráfico de barras para la variable 'Cambios'
+g4 <- ggbarplot(
+  contingencia,
+  x = "Cambios",
+  y = "Freq",
+  fill = "Cambios",
+  palette = c("steelblue", "steelblue1", "slategray4"),
+  title = "Cantidad de cambios de los automóviles",
+  xlab = "Cantidad de cambios",
+  ylab = "Frecuencia"
+)
+
+g4 <- ggpar(g4, legend = "none")
+print(g4)
+
+# Crear gráfico de torta para la variable 'Cambios'
+g5 <- ggpie(
+  contingencia, 
+  x = "Freq", 
+  label = "Cambios", 
+  lab.font = c(3, "plain", "white"),
+  fill = "Cambios",  # Deja que ggplot maneje el color según la variable 'Cambios'
+  title = "Cantidad de cambios de los automóviles",
+  lab.pos = "in"
+)
+
+print(g5)
+
+# Crear gráfico de dispersión para 'mpg' (Rendimiento) vs 'wt' (Peso)
+g6 <- ggscatter(
+  datos, 
+  x = "mpg", 
+  y = "wt", 
+  color = "steelblue", 
+  title = "Rendimiento vs peso",
+  xlab = "Rendimiento [millas / galón]", 
+  ylab = "Peso [1000 lb]"
+)
+print(g6)
+
+```
+
+
+```{r}
+# 1. Crear una variable discreta para representar el dado adulterado
+resultados <- 1:6
+probabilidades <- c(0.25, 0.125, 0.125, 0.125, 0.125, 0.25)
+
+# 5. Calcular el valor esperado
+esperado <- sum(resultados * probabilidades)
+cat("Valor esperado: ", esperado, "\n")
+
+# 9. Calcular la varianza
+varianza <- sum(((resultados - esperado) ^ 2) * probabilidades)
+cat("Varianza: ", varianza, "\n")
+
+# 13. Calcular la desviación estándar
+desviacion <- sqrt(varianza)
+cat("Desviación estándar: ", desviacion, "\n")
+
+# 3. Suma de variables aleatorias independientes e idónticamente distribuidas (IID)
+# Es decir, cada variable aleatoria tiene la misma distribución de probabilidad
+# y todas son mutuamente independientes.
+SumaIID <- function(pr, n = 2) {
+  probs <- pr
+  i <- 2
+  # Como un resultado depende del resultado anterior, se usa un ciclo tradicional
+  while (i <= n) {
+    # Producto de los vectores de probabilidades
+    npr <- outer(probs, pr, FUN = "*")
+    # Obtiene a qué salida pertenece cada probabilidad
+    nout <- outer(as.numeric(names(probs)), as.numeric(names(pr)), FUN = "+")
+    # Suma las probabilidades correspondientes a cada salida
+    tmp <- tapply(npr, nout, sum)
+    probs <- tmp
+    i <- i + 1
+  }
+  invisible(probs)
+}
+
+# Crear una variable discreta para representar el dado adulterado
+resultados <- 1:6
+probabilidades = c(0.25, 0.125, 0.125, 0.125, 0.125, 0.25)
+names(probabilidades) <- resultados
+
+# Crear vector con los resultados de 5 lanzamientos del dado
+lanzar_5 <- SumaIID(probabilidades, n = 5)
+lanzar_5_df <- data.frame(Salida = names(lanzar_5), Prob = lanzar_5, N = "5")
+
+# Crear vector con los resultados de 10 lanzamientos del dado
+lanzar_10 <- SumaIID(probabilidades, n = 10)
+lanzar_10_df <- data.frame(Salida = names(lanzar_10), Prob = lanzar_10, N = "10")
+
+# Crear vector con los resultados de 20 lanzamientos del dado
+lanzar_20 <- SumaIID(probabilidades, n = 20)
+lanzar_20_df <- data.frame(Salida = names(lanzar_20), Prob = lanzar_20, N = "20")
+
+# Juntar las matrices de datos con los resultados
+lanzamientos <- rbind(lanzar_5_df, lanzar_10_df, lanzar_20_df)
+lanzamientos[["Salida"]] <- as.integer(lanzamientos[["Salida"]])
+
+# Graficar los resultados
+library(ggpubr)
+g <- ggbarplot(lanzamientos, x = "Salida", y = "Prob",
+               fill = "N", palette = c("steelblue", "steelblue1", "slategray4"),
+               title = "Lanzamientos de un dado cargado",
+               xlab = "Cantidad de lanzamientos independientes",
+               ylab = "Frecuencia")
+g <- g + scale_x_continuous(breaks = get_breaks(n = 6))
+g <- ggpar(g, legend = "none", font.tickslab = c(9, "plain", "black"))
+g <- facet(g, facet.by = "N", scales = "free",
+           panel.labs = list(N = c("5 lanzamientos",
+                                    "10 lanzamientos",
+                                    "20 lanzamientos")))
+print(g)
+
+# 1. Definir las distribuciones normales del ejemplo
+medias <- c(10, 10, 10, 10)
+sigmas <- c(1, 2, 4, 6)
+vars <- sigmas^2
+
+# Crear las etiquetas para cada ejemplo
+labels_str <- sprintf(r'($\aleph(\small{\mu= %d,\sigma^2= %d})$)', medias, vars)
+
+# Construir las distribuciones normales
+x <- seq(-5, 25, 0.01)
+y1 <- dnorm(x, mean = medias[1], sd = sigmas[1])
+y2 <- dnorm(x, mean = medias[2], sd = sigmas[2])
+y3 <- dnorm(x, mean = medias[3], sd = sigmas[3])
+y4 <- dnorm(x, mean = medias[4], sd = sigmas[4])
+
+# Juntar las distribuciones de ejemplo en una sola matriz de datos
+n <- length(x)
+y = c(y1, y2, y3, y4)
+ejemplo <- factor(rep(sigmas, each = n))
+datos_norm <- data.frame(x, y, ejemplo)
+
+# Graficar las distribuciones normales
+g <- ggline(datos_norm, "x", "y", color = "ejemplo",
+            numeric.x.axis = TRUE, plot_type = "l",
+            xlab = FALSE, ylab = FALSE,
+            title = "Distribución normal")
+colores <- c("steelblue", "steelblue1", "steelblue3", "steelblue4")
+g <- ggpar(g, legend = c(0.8, 0.7))
+g <- ggpar(g, legend.title = "Distribución")
+g <- ggpar(g, font.legend = c(10, "plain", "black"))
+g <- g + scale_color_discrete(labels = lapply(labels_str, TeX),
+                               type = colores)
+g <- g + theme(legend.text = element_text(family = "serif", size = 14))
+print(g)
+
+# 1. Gráfico Q-Q para la variable Rendimiento
+ggqqplot(datos[["mpg"]], color = "steelblue")
+
+```
+
+```{r}
+# Cargar librerías necesarias
+library(ggpubr)
+library(ggplot2)
+
+# Establecer la semilla para generar los mismos números aleatorios cada vez que se ejecute el script
+set.seed(9437)
+
+# Generar aleatoriamente una población de tamaño 1500 (en este caso, siguiendo una distribución normal)
+poblacion <- rnorm(n = 1500, mean = 4.32, sd = 0.98)
+
+# Calcular la media de la población
+media_poblacion <- mean(poblacion)
+cat("Media de la población: ", media_poblacion, "\n")
+
+# Tomar una muestra de tamaño 1250
+tamano_muestra <- 1250
+muestra <- sample(poblacion, tamano_muestra)
+
+# Calcular las medias acumuladas (es decir, con muestras de 1, 2, 3, ... elementos)
+n <- seq(along = muestra)
+media <- cumsum(muestra) / n
+
+# Crear una matriz de datos con los tamaños y las medias muestrales
+datos <- data.frame(n, media)
+
+# Graficar las medias muestrales
+g <- ggline(data = datos, x = "n", y = "media", 
+            plot_type = "l", color = "steelblue", 
+            main = "Media muestral", 
+            xlab = "Tamaño de la muestra", 
+            ylab = "Media muestral")
+
+# Añadir al gráfico una recta con la media de la población
+g <- g + geom_hline(aes(yintercept = media_poblacion), 
+                    color = "skyblue1", linetype = 2)
+
+# Mostrar el gráfico
+print(g)
+
+# Ahora vamos a realizar el segundo análisis: Tomar 1000 muestras de tamaño 100
+set.seed(94)
+
+# Generar aleatoriamente una población de tamaño 1500
+poblacion <- rnorm(n = 1500, mean = 4.32, sd = 0.98)
+
+# Calcular la media de la población
+media_poblacion <- mean(poblacion)
+cat("Media de la población: ", media_poblacion, "\n")
+
+# Tomar 1000 muestras de tamaño 100
+tamano_muestra <- 100
+repeticiones <- 1000
+
+muestras <- replicate(repeticiones, sample(poblacion, tamano_muestra))
+
+# Calcular medias muestrales y almacenar los resultados en forma de data frame
+medias <- colMeans(muestras)
+medias <- as.data.frame(medias)
+
+# Construir un histograma de las medias muestrales
+g <- gghistogram(data = medias, x = "medias", 
+                  bins = 20, fill = "steelblue", alpha = 0.2, 
+                  title = "Distribución de la media muestral", 
+                  xlab = "Media", ylab = "Frecuencia")
+
+# Agregar línea vertical con la media de la población
+g <- g + geom_vline(aes(xintercept = media_poblacion), 
+                    color = "darkgoldenrod1", linetype = 2, linewidth = 1)
+
+
+
+# Tercer análisis: Generar una muestra donde la media cumpla con la hipótesis nula
+set.seed(872)
+
+media_poblacion_antiguo <- 530
+media_muestra_nuevo <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+# Generar una secuencia de valores para graficar la distribución
+x <- seq(media_poblacion_antiguo - 5.2 * error_est, 
+         media_poblacion_antiguo + 5.2 * error_est, 0.01)
+
+# Calcular la función de densidad normal
+y <- dnorm(x, mean = media_poblacion_antiguo, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x)) 
+g <- g + stat_function(fun = dnorm, 
+                       args = list(mean = media_poblacion_antiguo, sd = error_est), 
+                       colour = "steelblue", size = 1)
+g <- g + ylab(" ") 
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Colorear el área igual o menor que la media observada
+g <- g + geom_area(data = subset(muestra, x < media_muestra_nuevo), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Agregar una línea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = media_poblacion_antiguo), 
+                    color = "skyblue1", linetype = 1)
+
+# Mostrar el gráfico
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (media_muestra_nuevo - media_poblacion_antiguo) / error_est
+cat("Valor Z: ", Z, "\n")
+
+# Calcular y mostrar el valor p
+p_1 <- pnorm(Z, lower.tail = TRUE)
+cat("Valor p: ", p_1, "\n")
+
+# Calcular el valor p directamente a partir de la distribución muestral
+p_2 <- pnorm(media_muestra_nuevo, mean = media_poblacion_antiguo, sd = error_est)
+cat("Valor p: ", p_2, "\n")
+
+# Cuarto análisis: Calcular área bajo la cola inferior y colorear el área en la cola restante
+set.seed(208)
+
+media_poblacion_antiguo <- 530
+media_muestra_nuevo <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+x <- seq(media_poblacion_antiguo - 5.2 * error_est, 
+         media_poblacion_antiguo + 5.2 * error_est, 0.01)
+
+y <- dnorm(x, mean = media_poblacion_antiguo, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x))
+g <- g + stat_function(fun = dnorm, 
+                       args = list(mean = media_poblacion_antiguo, sd = error_est), 
+                       colour = "steelblue", size = 1)
+g <- g + ylab(" ")
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Colorear el área igual o menor que la media observada
+area_inferior <- pnorm(media_muestra_nuevo, 
+                       mean = media_poblacion_antiguo, 
+                       sd = desv_est)
+g <- g + geom_area(data = subset(muestra, x < media_muestra_nuevo), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Colorear el área en la cola restante
+corte_x <- qnorm(1 - area_inferior, mean = media_poblacion_antiguo, 
+                 sd = desv_est)
+g <- g + geom_area(data = subset(muestra, x > corte_x), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Agregar una línea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = media_poblacion_antiguo), 
+                    color = "skyblue1", linetype = 1)
+
+# Mostrar el gráfico
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (media_muestra_nuevo - media_poblacion_antiguo) / error_est
+
+# Calcular y mostrar el valor p (recordando ahora que la hipótesis es bilateral)
+p <- 2 * pnorm(Z, lower.tail = TRUE)
+cat("Valor p: ", p)
+
+```
+```{r}
+# Cargar librerías necesarias
+library(ggpubr)
+library(ggplot2)
+# Instalar el paquete extraDistr
+install.packages("extraDistr")
+# Cargar el paquete extraDistr
+library(extraDistr)
+
+# 1. Distribución chi-cuadrado
+x <- 5
+df <- 10
+# Función de densidad (pdf)
+dchisq(x, df)
+
+# Función acumulada (CDF)
+pchisq(x, df)
+
+# Cuantil de la distribución chi-cuadrado para un p
+p <- 0.95
+qchisq(p, df)
+
+# Generar números aleatorios de chi-cuadrado
+n <- 100
+rchisq(n, df)
+
+
+# 2. Distribución t
+x <- 2.5
+df <- 10
+# Función de densidad (pdf)
+dt(x, df)
+
+# Función acumulada (CDF)
+pt(x, df)
+
+# Cuantil de la distribución t para un p
+p <- 0.95
+qt(p, df)
+
+# Generar números aleatorios de t
+n <- 100
+rt(n, df)
+
+
+# 3. Distribución F
+x <- 2
+df1 <- 10
+df2 <- 15
+# Función de densidad (pdf)
+df(x, df1, df2)
+
+# Función acumulada (CDF)
+pf(x, df1, df2)
+
+# Cuantil de la distribución F para un p
+p <- 0.95
+qf(p, df1, df2)
+
+# Generar números aleatorios de F
+n <- 100
+rf(n, df1, df2)
+
+
+# 4. Distribución Bernoulli
+x <- 1
+prob <- 0.5
+# Función de densidad (pdf)
+dbern(x, prob)
+
+# Función acumulada (CDF)
+pbern(x, prob)
+
+# Cuantil de la distribución Bernoulli para un p
+p <- 0.95
+qbern(p, prob)
+
+# Generar números aleatorios de Bernoulli
+n <- 100
+rbern(n, prob)
+
+
+# 5. Distribución Geométrica
+x <- 3
+prob <- 0.2
+# Función de densidad (pdf)
+dgeom(x, prob)
+
+# Función acumulada (CDF)
+pgeom(x, prob)
+
+# Cuantil de la distribución geométrica para un p
+p <- 0.95
+qgeom(p, prob)
+
+# Generar números aleatorios de la distribución geométrica
+n <- 100
+rgeom(n, prob)
+
+
+# 6. Distribución Binomial
+x <- 3
+size <- 10
+prob <- 0.5
+# Función de densidad (pdf)
+dbinom(x, size, prob)
+
+# Función acumulada (CDF)
+pbinom(x, size, prob)
+
+# Cuantil de la distribución binomial para un p
+p <- 0.95
+qbinom(p, size, prob)
+
+# Generar números aleatorios de la distribución binomial
+n <- 100
+rbinom(n, size, prob)
+
+
+# 7. Distribución Negativa Binomial
+x <- 3
+size <- 10
+prob <- 0.5
+# Función de densidad (pdf)
+dnbinom(x, size, prob)
+
+# Función acumulada (CDF)
+pnbinom(x, size, prob)
+
+# Cuantil de la distribución negativa binomial para un p
+p <- 0.95
+qnbinom(p, size, prob)
+
+# Generar números aleatorios de la distribución negativa binomial
+n <- 100
+rnbinom(n, size, prob)
+
+
+# 8. Generar una población aleatoria y calcular la media, varianza, y desviación estándar
+set.seed(9437)
+poblacion <- rnorm(n = 1500, mean = 4.32, sd = 0.98)
+media_poblacion <- mean(poblacion)
+cat("Media de la población: ", media_poblacion, "\n")
+
+# Tomar una muestra de tamaño 1250
+tamano_muestra <- 1250
+muestra <- sample(poblacion, tamano_muestra)
+
+# Calcular las medias acumuladas (es decir, con muestras de 1, 2, 3, ... elementos)
+n <- seq(along = muestra)
+media <- cumsum(muestra) / n
+
+# Crear una matriz de datos con los tamaños y las medias muestrales
+datos <- data.frame(n, media)
+
+# Graficar las medias muestrales
+g <- ggline(data = datos, x = "n", y = "media", 
+            plot_type = "l", color = "steelblue", 
+            main = "Media muestral", 
+            xlab = "Tamaño de la muestra", 
+            ylab = "Media muestral")
+
+# Añadir al gráfico una recta con la media de la población
+g <- g + geom_hline(aes(yintercept = media_poblacion), 
+                    color = "skyblue1", linetype = 2)
+
+# Mostrar el gráfico
+print(g)
+
+
+# 9. Generar 1000 muestras de tamaño 100 y calcular su distribución de medias muestrales
+set.seed(94)
+tamano_muestra <- 100
+repeticiones <- 1000
+muestras <- replicate(repeticiones, sample(poblacion, tamano_muestra))
+
+# Calcular medias muestrales y almacenar los resultados en forma de data frame
+medias <- colMeans(muestras)
+medias <- as.data.frame(medias)
+
+# Construir un histograma de las medias muestrales
+g <- gghistogram(data = medias, x = "medias", 
+                  bins = 20, fill = "steelblue", alpha = 0.2, 
+                  title = "Distribución de la media muestral", 
+                  xlab = "Media", ylab = "Frecuencia")
+
+# Agregar línea vertical con la media de la población
+g <- g + geom_vline(aes(xintercept = media_poblacion), 
+                    color = "darkgoldenrod1", linetype = 2, linewidth = 1)
+
+# Mostrar el gráfico
+print(g)
+
+
+# 10. Calcular el valor Z para la muestra y el valor p
+set.seed(872)
+media_poblacion_antiguo <- 530
+media_muestra_nuevo <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+x <- seq(media_poblacion_antiguo - 5.2 * error_est, 
+         media_poblacion_antiguo + 5.2 * error_est, 0.01)
+
+y <- dnorm(x, mean = media_poblacion_antiguo, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x)) 
+g <- g + stat_function(fun = dnorm, 
+                       args = list(mean = media_poblacion_antiguo, sd = error_est), 
+                       colour = "steelblue", size = 1)
+g <- g + ylab(" ") 
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Colorear el área igual o menor que la media observada
+g <- g + geom_area(data = subset(muestra, x < media_muestra_nuevo), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Agregar una línea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = media_poblacion_antiguo), 
+                    color = "skyblue1", linetype = 1)
+
+# Mostrar el gráfico
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (media_muestra_nuevo - media_poblacion_antiguo) / error_est
+cat("Valor Z: ", Z, "\n")
+
+# Calcular y mostrar el valor p
+p_1 <- pnorm(Z, lower.tail = TRUE)
+cat("Valor p: ", p_1, "\n")
+
+
+# 11. Calcular área bajo la cola inferior y colorear el área en la cola restante
+set.seed(208)
+
+media_poblacion_antiguo <- 530
+media_muestra_nuevo <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+x <- seq(media_poblacion_antiguo - 5.2 * error_est, 
+         media_poblacion_antiguo + 5.2 * error_est, 0.01)
+
+y <- dnorm(x, mean = media_poblacion_antiguo, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x))
+g <- g + stat_function(fun = dnorm, 
+                       args = list(mean = media_poblacion_antiguo, sd = error_est), 
+                       colour = "steelblue", size = 1)
+g <- g + ylab(" ")
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Colorear el área igual o menor que la media observada
+area_inferior <- pnorm(media_muestra_nuevo, 
+                       mean = media_poblacion_antiguo, 
+                       sd = desv_est)
+g <- g + geom_area(data = subset(muestra, x < media_muestra_nuevo), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Colorear el área en la cola restante
+corte_x <- qnorm(1 - area_inferior, mean = media_poblacion_antiguo, 
+                 sd = desv_est)
+g <- g + geom_area(data = subset(muestra, x > corte_x), 
+                   aes(y = y), colour = "steelblue", fill = "steelblue", alpha = 0.5)
+
+# Agregar una línea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = media_poblacion_antiguo), 
+                    color = "skyblue1", linetype = 1)
+
+# Mostrar el gráfico
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (media_muestra_nuevo - media_poblacion_antiguo) / error_est
+
+# Calcular y mostrar el valor p (recordando ahora que la hipótesis es bilateral)
+p <- 2 * pnorm(Z, lower.tail = TRUE)
+cat("Valor p: ", p)
+
+```
+```{r}
+# Cargar librerías necesarias
+library(TeachingDemos)
+library(ggpubr)
+
+# Ingresar los datos
+muestra <- c(19.33, 29.37, 29.14, 32.10, 25.04, 22.22, 31.26, 26.92, 
+             31.40, 17.66, 22.55, 20.69, 24.68, 28.74, 26.85, 29.68,
+             29.27, 26.72, 27.08, 20.62)
+
+# Establecer los datos conocidos
+desv_est <- 2.32
+n <- length(muestra)
+valor_nulo <- 20
+
+# Fijar un nivel de significación
+alfa <- 0.01
+
+# Crear gráfico Q-Q para verificar la distribución de la muestra
+g <- ggqqplot(data = data.frame(muestra), x = "muestra", 
+              color = "steelblue", xlab = "Teórico", ylab = "Muestra", 
+              title = "Gráfico Q-Q muestra v/s distribución normal")
+print(g)
+
+# Verificar distribución muestral usando la prueba de normalidad de Shapiro-Wilk
+normalidad <- shapiro.test(muestra)
+print(normalidad)
+
+# Calcular y mostrar la media de la muestra
+media <- mean(muestra)
+cat("\tPrueba Z para una muestra\n\n")
+cat("Media = ", media, " [M$]\n")
+
+# Calcular y mostrar el estadístico de prueba
+Z <- (media - valor_nulo) / (desv_est / sqrt(n))
+cat("Z = ", Z, "\n")
+
+# Calcular y mostrar el valor p
+p <- 2 * pnorm(Z, lower.tail = FALSE)
+cat("p = ", p, "\n")
+
+# Hacer la prueba Z usando el paquete TeachingDemos
+# Una alternativa es usando la media muestral y el tamaño de la muestra
+prueba1 <- z.test(media, mu = valor_nulo, n = 20, alternative = "two.sided", 
+                  stdev = desv_est, conf.level = 1 - alfa)
+print(prueba1)
+
+# Otra opción es usando la muestra directamente
+prueba2 <- z.test(muestra, mu = valor_nulo, alternative = "two.sided", 
+                  stdev = desv_est, conf.level = 1 - alfa)
+print(prueba2)
+
+
+# Cargar los datos para el segundo análisis
+tiempo <- c(411.5538, 393.2753, 445.8905, 411.4022, 498.8969, 
+            388.6731, 430.0382, 469.4734, 409.5844, 442.0800, 
+            418.1169, 408.4110, 463.3733, 407.0908, 516.5222)
+
+# Establecer los datos conocidos
+n <- length(tiempo)
+grados_libertad <- n - 1
+valor_nulo <- 500
+
+# Verificar si la distribución se acerca a la normal
+g <- ggqqplot(data = data.frame(tiempo), x = "tiempo", color = "steelblue", 
+              xlab = "Teórico", ylab = "Muestra", 
+              title = "Gráfico Q-Q muestra v/s distribución normal")
+print(g)
+
+# Fijar un nivel de significación
+alfa <- 0.025
+
+# Calcular y mostrar el estadístico de prueba
+media <- mean(tiempo)
+desv_est <- sd(tiempo)
+error_est <- desv_est / sqrt(n)
+t <- (media - valor_nulo) / error_est
+cat("\tPrueba t para una muestra\n")
+cat("Media = ", media, " [ms]\n")
+cat("t = ", t, "\n")
+
+# Calcular el valor p
+p <- pt(t, df = grados_libertad, lower.tail = TRUE)
+cat("p = ", p, "\n")
+
+# Construir el intervalo de confianza
+t_critico <- qt(alfa, df = grados_libertad, lower.tail = FALSE)
+superior <- media + t_critico * error_est
+cat("Intervalo de confianza = ( -Inf , ", superior, " ]\n", sep = "")
+
+# Aplicar la prueba t de Student con la función de R
+prueba <- t.test(tiempo, mu = valor_nulo, alternative = "less", conf.level = 1 - alfa)
+print(prueba)
+
+
+# Análisis para dos muestras relacionadas
+instancia <- seq(1, 35, 1)
+t_A <- c(436.5736, 470.7937, 445.8354, 470.9810, 485.9394,
+         464.6145, 466.2139, 468.9065, 473.8778, 413.0639,
+         496.8705, 450.6578, 502.9759, 465.6358, 437.6397,
+         458.8806, 503.1435, 430.0524, 438.5959, 439.7409,
+         464.5916, 467.9926, 415.3252, 495.4094, 493.7082,
+         433.1082, 445.7433, 515.2049, 441.9420, 472.1396,
+         451.2234, 476.5149, 440.7918, 460.1070, 450.1008)
+
+t_B <- c(408.5142, 450.1075, 490.2311, 513.6910, 467.6467,
+         484.1897, 465.9334, 502.6670, 444.9693, 456.3341,
+         501.1443, 471.7833, 441.1206, 544.1575, 447.8844,
+         432.4108, 477.1712, 482.4828, 458.2536, 474.9863,
+         496.0153, 485.8112, 457.4253, 483.3700, 510.7131,
+         467.5739, 482.5621, 453.5986, 385.9391, 548.7884,
+         467.2533, 494.7049, 451.9716, 522.3699, 444.1270)
+
+# Calcular la diferencia entre las medias
+diferencia <- t_A - t_B
+
+# Fijar un nivel de significación
+alfa <- 0.05
+
+# Verificar si la distribución se acerca a la normal
+normalidad <- shapiro.test(diferencia)
+print(normalidad)
+
+# Aplicar la prueba t de Student a la diferencia de medias
+valor_nulo <- 0
+prueba_1 <- t.test(diferencia, alternative = "two.sided", mu = valor_nulo, conf.level = 1 - alfa)
+print(prueba_1)
+
+# Otra alternativa puede ser aplicar la prueba t de Student
+# para dos muestras pareadas
+prueba_2 <- t.test(x = t_A, y = t_B, paired = TRUE, 
+                   alternative = "two.sided", 
+                   mu = valor_nulo, conf.level = 1 - alfa)
+print(prueba_2)
+
+
+# Análisis para dos muestras independientes (vacuna A vs vacuna B)
+vacuna_A <- c(6.04, 19.84, 8.62, 13.02, 12.20, 14.78, 4.53, 26.67,
+              3.14, 19.14, 10.86, 13.13, 6.34, 11.16, 7.62)
+
+vacuna_B <- c(5.32, 3.31, 5.68, 5.73, 4.86, 5.68, 2.93, 5.48, 6.10,
+              2.56, 7.52, 7.41, 4.02)
+
+# Fijar un nivel de significación
+alfa <- 0.01
+
+# Verificar si las muestras se distribuyen de manera cercana a la normal
+normalidad_A <- shapiro.test(vacuna_A)
+print(normalidad_A)
+normalidad_B <- shapiro.test(vacuna_B)
+print(normalidad_B)
+
+# Aplicar la prueba t para dos muestras independientes, aplicando la corrección de Welch
+prueba <- t.test(x = vacuna_A, y = vacuna_B, paired = FALSE, 
+                 alternative = "greater", mu = 0, conf.level = 1 - alfa)
+print(prueba)
+
+# Calcular la diferencia entre las medias
+diferencia <- prueba[["estimate"]][1] - prueba[["estimate"]][2]
+cat("Diferencia de las medias = ", diferencia, " [mg/ml]\n")
+
+```
+
+
+```{r}
+# Cargar librerías necesarias
+library(TeachingDemos)
+library(ggpubr)
+
+# Fijar valores conocidos
+n <- 150
+p_exito <- 0.64
+valor_nulo <- 0.7
+
+# Establecer el nivel de significación
+alfa <- 0.05
+
+# Construir el intervalo de confianza
+error_est <- sqrt((p_exito * (1 - p_exito)) / n)
+Z_critico <- qnorm(alfa / 2, lower.tail = FALSE)
+inferior <- p_exito - Z_critico * error_est
+superior <- p_exito + Z_critico * error_est
+cat("Intervalo de confianza = [", inferior, ",", superior, "]\n")
+
+# Realizar la prueba de hipótesis
+error_est_hip <- sqrt((valor_nulo * (1 - valor_nulo)) / n)
+Z <- (p_exito - valor_nulo) / error_est_hip
+p <- pnorm(Z, lower.tail = FALSE)
+cat("Hipótesis alternativa unilateral\n")
+cat("Z = ", Z, "\n")
+cat("p = ", p, "\n")
+
+
+# Fijar valores conocidos para el segundo análisis
+n_hombres <- 48
+n_mujeres <- 42
+exitos_hombres <- 26
+exitos_mujeres <- 20
+valor_nulo <- 0
+
+# Establecer el nivel de significación
+alfa <- 0.05
+
+# Calcular probabilidades de éxito
+p_hombres <- exitos_hombres / n_hombres
+p_mujeres <- exitos_mujeres / n_mujeres
+
+# Estimar la diferencia de las proporciones observadas
+diferencia <- p_hombres - p_mujeres
+
+# Construir y mostrar el intervalo de confianza
+error_hombres <- (p_hombres * (1 - p_hombres)) / n_hombres
+error_mujeres <- (p_mujeres * (1 - p_mujeres)) / n_mujeres
+error_est <- sqrt(error_hombres + error_mujeres)
+Z_critico <- qnorm(alfa / 2, lower.tail = FALSE)
+inferior <- diferencia - Z_critico * error_est
+superior <- diferencia + Z_critico * error_est
+cat("Intervalo de confianza = [", inferior, ",", superior, "]\n")
+
+# Realizar y mostrar la prueba de hipótesis
+p_agrupada <- (exitos_hombres + exitos_mujeres) / (n_hombres + n_mujeres)
+error_hombres <- (p_agrupada * (1 - p_agrupada)) / n_hombres
+error_mujeres <- (p_agrupada * (1 - p_agrupada)) / n_mujeres
+error_est_hip_nula <- sqrt(error_hombres + error_mujeres)
+Z <- (diferencia - valor_nulo) / error_est_hip_nula
+p <- 2 * pnorm(Z, lower.tail = FALSE)
+cat("Hipótesis alternativa bilateral\n")
+cat("Z = ", Z, "\n")
+cat("p = ", p, "\n")
+
+
+# Fijar valores conocidos para el tercer análisis
+n_hombres <- 89
+n_mujeres <- 61
+exitos_hombres <- 45
+exitos_mujeres <- 21
+valor_nulo <- 0.1
+
+# Establecer el nivel de significación
+alfa <- 0.05
+
+# Calcular probabilidades de éxito
+p_hombres <- exitos_hombres / n_hombres
+p_mujeres <- exitos_mujeres / n_mujeres
+
+# Estimar la diferencia
+diferencia <- p_hombres - p_mujeres
+
+# Realizar y mostrar la prueba de hipótesis
+error_hombres <- (p_hombres * (1 - p_hombres)) / n_hombres
+error_mujeres <- (p_mujeres * (1 - p_mujeres)) / n_mujeres
+error_est <- sqrt(error_hombres + error_mujeres)
+Z <- (diferencia - valor_nulo) / error_est
+p <- pnorm(Z, lower.tail = FALSE)
+cat("Hipótesis alternativa bilateral\n")
+cat("Z = ", Z, "\n")
+cat("p = ", p, "\n")
+
+
+# Fijar valores conocidos para el cuarto análisis
+n <- 150
+p_exito <- 0.64
+valor_nulo <- 0.7
+
+# Establecer el nivel de significación
+alfa <- 0.05
+
+# Calcular cantidad de éxitos
+exitos <- p_exito * n
+
+# Realizar y mostrar la prueba de Wilson en R
+prueba <- prop.test(exitos, n = n, p = valor_nulo, 
+                    alternative = "greater", conf.level = 1 - alfa)
+print(prueba)
+
+
+# Método de Wilson para la diferencia entre dos proporciones
+# Fijar valores conocidos (hombres, mujeres)
+n <- c(48, 42)
+exitos <- c(26, 20)
+
+# Establecer el nivel de significación
+alfa <- 0.05
+
+# Realizar y mostrar la prueba de Wilson en R
+prueba <- prop.test(exitos, n = n, alternative = "two.sided", 
+                    conf.level = 1 - alfa)
+print(prueba)
+
+
+```
+```{r}
+# Cargar librerías necesarias
+library(ggpattern)
+library(ggplot2)
+library(ggpubr)
+
+# Definir los valores fijados en el enunciado
+n <- 36
+alfa <- 0.05
+media_nula <- 60
+sigma <- 12
+
+# Calcular el error estándar
+SE <- sigma / sqrt(n)
+
+# Gráfico de la distribución muestral de las medias si la hipótesis nula fuera verdadera
+g_x_limites <- media_nula + c(-6.9, 5) * SE
+g <- ggplot() + xlim(g_x_limites)
+g <- g + labs(x = "Tiempo de ejecución [s]", y = "Densidad")
+g <- g + labs(title = "Distribución muestral de las medias")
+g <- g + theme_pubr()
+
+# Agregar la hipótesis nula
+dist_0 <- stat_function(fun = dnorm, geom = "area",
+                        args = list(mean = media_nula, sd = SE),
+                        colour = "steelblue", fill = "steelblue", alpha = 0.1)
+g1 <- g + dist_0
+g1 <- g1 + geom_vline(xintercept = media_nula, colour = "steelblue")
+
+# Calcular las regiones críticas de la hipótesis nula
+z_critico_inferior <- qnorm(alfa / 2, mean = media_nula, sd = SE, lower.tail = TRUE)
+z_critico_superior <- qnorm(alfa / 2, mean = media_nula, sd = SE, lower.tail = FALSE)
+
+# Colorear regiones de rechazo en el gráfico y el valor nulo
+g2 <- g1 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_nula, sd = SE),
+                          xlim = c(g_x_limites[1], z_critico_inferior),
+                          fill = "steelblue", alpha = 0.6)
+g2 <- g2 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_nula, sd = SE),
+                          xlim = c(z_critico_superior, g_x_limites[2]),
+                          fill = "steelblue", alpha = 0.6)
+print(g2)
+
+# Definir los valores verdaderos, usualmente desconocidos
+media_verdadera <- 55.6
+delta <- media_nula - media_verdadera
+
+# Agregar la verdadera distribución muestral de las medias
+dist_v <- stat_function(fun = dnorm, geom = "area",
+                        args = list(mean = media_verdadera, sd = SE),
+                        colour = "steelblue1", fill = "steelblue1", alpha = 0.1)
+g3 <- g2 + dist_v + geom_vline(xintercept = media_verdadera, colour = "steelblue1")
+
+# Agregar anotación del tamaño del efecto
+x_ann <- c(media_verdadera, media_nula)
+y_ann <- c(dnorm(media_verdadera, mean = media_verdadera, sd = SE),
+           dnorm(media_nula, mean = media_nula, sd = SE))
+y_ann <- y_ann + 0.005
+g3 <- g3 + annotate("segment", x = x_ann[1], y = y_ann[1],
+                    xend = x_ann[2], yend = y_ann[2],
+                    arrow = arrow(angle = 10, length = unit(0.03, "npc"),
+                                  ends = "both", type = "open"))
+g3 <- g3 + annotate("text", x = sum(x_ann) / 2, y = y_ann[1] + 0.015,
+                    label = "delta", vjust = "top", parse = TRUE)
+print(g3)
+
+# Traspasar las regiones críticas a la verdadera distribución muestral de las medias
+g4 <- g + dist_0 + dist_v
+g4 <- g4 + geom_vline(xintercept = media_nula, colour = "steelblue")
+g4 <- g4 + geom_vline(xintercept = media_verdadera, colour = "steelblue1")
+g4 <- g4 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_nula, sd = SE),
+                          xlim = c(g_x_limites[1], z_critico_inferior),
+                          fill = "steelblue", alpha = 0.6)
+g4 <- g4 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_nula, sd = SE),
+                          xlim = c(z_critico_superior, g_x_limites[2]),
+                          fill = "steelblue", alpha = 0.6)
+g4 <- g4 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_verdadera, sd = SE),
+                          xlim = c(g_x_limites[1], z_critico_inferior),
+                          fill = "steelblue1", alpha = 0.3)
+g4 <- g4 + stat_function(fun = dnorm, geom = "area",
+                          args = list(mean = media_verdadera, sd = SE),
+                          xlim = c(z_critico_superior, g_x_limites[2]),
+                          fill = "steelblue1", alpha = 0.3)
+g4 <- g4 + stat_function(fun = dnorm, geom = "area_pattern",
+                          args = list(mean = media_verdadera, sd = SE),
+                          xlim = c(z_critico_inferior, z_critico_superior),
+                          fill = "white", colour = "steelblue1", alpha = 0.3,
+                          pattern_spacing = 0.15, pattern_density = 0.4,
+                          pattern_fill = "steelblue1", pattern_colour = "steelblue1",
+                          pattern_angle = 45, pattern_alpha = 0.3)
+
+# Agregar anotación del poder
+g4 <- g4 + annotate("text", x = 50, y = 0.1, label = "poder [inf]",
+                    vjust = "top", parse = TRUE)
+g4 <- g4 + annotate("text", x = 66.3, y = 0.04, label = "poder [sup]",
+                    vjust = "top", parse = TRUE)
+g4 <- g4 + annotate("text", x = sum(x_ann) / 2, y = y_ann[1] - 0.005,
+                    label = "beta", vjust = "top", parse = TRUE)
+g4 <- g4 + annotate("segment", x = 50, y = 0.087, xend = 52.5, yend = 0.02,
+                    arrow = arrow(angle = 10, length = unit(0.03, "npc"),
+                                  ends = "last", type = "open"))
+g4 <- g4 + annotate("segment", x = 65, y = 0.027, xend = 64.2, yend = 0.001,
+                    arrow = arrow(angle = 10, length = unit(0.03, "npc"),
+                                  ends = "last", type = "open"))
+g4 <- g4 + annotate("segment", x = sum(x_ann) / 2, y = y_ann[1] - 0.023,
+                    xend = 57, yend = 0.10,
+                    arrow = arrow(angle = 10, length = unit(0.03, "npc"),
+                                  ends = "last", type = "open"))
+print(g4)
+
+# Calcular el poder
+poder_inf <- pnorm(z_critico_inferior, mean = media_verdadera, sd = SE, lower.tail = TRUE)
+poder_sup <- pnorm(z_critico_superior, mean = media_verdadera, sd = SE, lower.tail = FALSE)
+poder <- poder_inf + poder_sup
+cat("Poder = ", poder, "\n")
+
+# Calcular la probabilidad de cometer un error tipo II
+beta <- 1 - poder
+cat("Beta = ", beta, "\n")
+
+```
+
+```{r}
+# Cargar librerías necesarias
+library(ggpattern)
+library(ggplot2)
+library(ggpubr)
+library(pwr)
+library(tidyr)
+
+# Definir los valores del enunciado
+n <- 36
+alfa <- 0.05
+media_nula <- 60
+sigma <- 12
+
+# Definir tamaños del efecto
+medias_verdaderas <- seq(50, 70, 0.01)  # Esto tiene 2001 elementos
+deltas <- medias_verdaderas - media_nula  # Esto tiene 2001 elementos
+deltas_normalizados <- deltas / sigma  # Esto también tendrá 2001 elementos
+
+# Definir función para calcular el poder de la prueba Z bilateral
+f_pzb <- function(x, n, alfa) {
+  pwr.norm.test(d = x, n = n, sig.level = alfa, alternative = "two.sided")$power
+}
+
+# Definir función para calcular el poder de la prueba Z con hipótesis alternativa unilateral tipo "less"
+f_pzl <- function(x, n, alfa) {
+  pwr.norm.test(d = x, n = n, sig.level = alfa, alternative = "less")$power
+}
+
+# Cálculo del poder para cada valor de delta_normalizado y alfa
+# Usamos un bucle o lapply para calcular poder para cada valor de alfa
+
+poder_bilat <- sapply(alfas, function(a) sapply(deltas_normalizados, f_pzb, n = n, alfa = a))
+poder_unilat <- sapply(alfas, function(a) sapply(deltas_normalizados, f_pzl, n = n, alfa = a))
+
+# Asegurarse de que las longitudes coincidan
+length(alfas)  # Esto debe ser 150
+dim(poder_bilat)  # Esto debe ser (150, 2001)
+dim(poder_unilat)  # Esto debe ser (150, 2001)
+
+# Graficar estas curvas
+# Convertir de formato ancho a largo
+datos_anchos <- data.frame(alfas = rep(alfas, each = length(deltas_normalizados)),
+                           deltas_normalizados = rep(deltas_normalizados, times = length(alfas)),
+                           poder_bilat = as.vector(poder_bilat),
+                           poder_unilat = as.vector(poder_unilat))
+
+# Convertir la columna "Tipo" a factor con las etiquetas correctas
+datos_anchos$Tipo <- factor(rep(c("Bilateral", "Unilateral"), each = length(deltas_normalizados)*length(alfas)/2))
+
+# Graficar usando ggplot2
+g <- ggline(datos_anchos, x = "deltas_normalizados", y = "poder_bilat", 
+            color = "Tipo", palette = c("steelblue", "steelblue1"), 
+            plot_type = "l", numeric.x.axis = TRUE)
+
+# Añadir etiquetas
+g <- g + labs(x = "Delta [s]")
+g <- g + labs(title = "Relación entre poder y tamaño del efecto")
+g <- ggpar(g, legend = c(0.85, 0.35))
+
+# Mostrar el gráfico
+print(g)
+
+
+```
+
+```{r}
+
+# Definir los valores del enunciado para el tamaño de la muestra
+alfa <- 0.05
+media_nula <- 60
+sigma <- 12
+
+# Definir el tamaño del efecto
+media_verdadera <- 55.6
+delta <- media_verdadera - media_nula
+delta_normalizado <- delta / sigma
+
+# Definir los tamaños de muestra
+ns <- seq(1, 130, 0.1)
+
+# Definir función para calcular el poder de la prueba Z bilateral y aplicar a los tamaños de muestra
+f_pzb <- function(x) pwr.norm.test(d = delta_normalizado, n = x, sig.level = alfa, alternative = "two.sided")$power
+poder_bilat <- sapply(ns, f_pzb)
+
+# Definir función para calcular el poder de la prueba Z con hipótesis alternativa unilateral tipo "less" y aplicar a los tamaños de muestra
+f_pzu <- function(x) pwr.norm.test(d = delta_normalizado, n = x, sig.level = alfa, alternative = "less")$power
+poder_unilat <- sapply(ns, f_pzu)
+
+# Graficar estas curvas
+datos_anchos <- data.frame(ns, poder_bilat, poder_unilat)
+datos_largos <- datos_anchos %>%
+  pivot_longer(cols = -ns, names_to = "Tipo", values_to = "Poder")
+datos_largos$Tipo <- factor(datos_largos$Tipo, labels = c("Bilateral", "Unilateral"))
+
+g <- ggline(datos_largos, x = "ns", y = "Poder", 
+            color = "Tipo", palette = c("steelblue", "steelblue1"), 
+            plot_type = "l", numeric.x.axis = TRUE)
+g <- g + labs(x = "Tamaño de la muestra")
+g <- g + labs(title = "Relación entre poder y tamaño de la muestra")
+g <- ggpar(g, legend = c(0.85, 0.35))
+print(g)
+
+
+# Definir los valores de las hipótesis para el cálculo de poder
+alfa <- 0.05
+poder <- 0.90
+
+media_L <- 60
+sigma_L <- sqrt(144)
+
+media_M <- 70
+sigma_M <- sqrt(196)
+
+# Tamaño del efecto
+delta <- media_L - media_M
+sigma_agrupado <- sqrt(2 * (sigma_L^2 + sigma_M^2))
+delta_normalizado <- delta / sigma_agrupado
+
+# Tamaño total de la muestra
+factores <- pwr.norm.test(d = delta_normalizado, sig.level = alfa, power = poder, alternative = "less")
+print(factores)
+cat("Número total de observaciones: ", ceiling(factores[["n"]]), "\n")
+
+
+# Cargar librerías para calcular el tamaño del efecto y poder
+library(effsize)
+library(pwr)
+
+# Valores L *
+muestra_L <- c(50916.01, 68274.39, 60212.33, 57973.14, 74787.28, 
+               61396.89, 72907.14, 55807.43, 61142.34, 61986.08, 
+               69704.93, 73718.12, 70488.12, 61836.25, 71255.53, 
+               61133.57, 57702.44, 79472.14, 69546.98, 56296.91, 
+               79657.66, 52530.76, 64012.86, 75995.01, 53014.13, 
+               69883.13, 62638.55, 87312.34, 47351.77, 66807.14)
+n_L <- length(muestra_L)
+
+# Valores M *
+muestra_M <- c(95075.86, 64758.71, 80269.73, 74365.69, 86104.68, 
+               41772.91, 116915.74, 33103.66, 61553.61, 55498.1, 
+               73996.43, 101619.51, 61037.45, 53973.06, 65523.67, 
+               69378.84, 80254.29, 84242.37, 91978.80, 73853.76, 
+               98258.72, 61785.34, 59753.93, 66855.87, 101783.46)
+n_M <- length(muestra_M)
+
+# Obtener tamaño del efecto
+tamano_efecto <- cohen.d(muestra_L, muestra_M)
+cat("Tamaño del efecto: \n")
+print(tamano_efecto)
+
+# Obtener poder de la prueba realizada
+d_de_Cohen <- tamano_efecto[["estimate"]]
+alfa <- 0.05
+valor_nulo <- 10
+factores <- pwr.t2n.test(n1 = n_L, n2 = n_M, d = d_de_Cohen, 
+                         sig.level = alfa, alternative = "less")
+cat("Factores de la prueba: \n")
+print(factores)
+
+# Mostrar probabilidad de error tipo II
+cat("Beta: ", 1 - factores[["power"]], "\n")
+
+```
+
+```{r}
+# Cargar librería pwr
+library(pwr)
+
+# 1. pwr.p.test() para pruebas con una única proporción
+# Parámetros
+h <- 0.5  # Tamaño del efecto (Cohen's h)
+n <- NULL  # Tamaño de la muestra (a calcular)
+sig.level <- 0.05  # Nivel de significancia
+power <- 0.8  # Poder deseado
+alternative <- "two.sided"  # Prueba bilateral
+
+# Calcular el tamaño de la muestra necesario para alcanzar el poder deseado
+resultado_pwr_p_test <- pwr.p.test(h = h, n = n, sig.level = sig.level, power = power, alternative = alternative)
+cat("Resultado de pwr.p.test() para una única proporción:\n")
+print(resultado_pwr_p_test)
+
+cat("\n")
+
+# 2. pwr.2p.test() para pruebas con dos proporciones donde ambas muestras son de igual tamaño
+# Calcular el tamaño de la muestra necesario para alcanzar el poder deseado
+resultado_pwr_2p_test <- pwr.2p.test(h = h, n = n, sig.level = sig.level, power = power, alternative = alternative)
+cat("Resultado de pwr.2p.test() para dos proporciones (igual tamaño):\n")
+print(resultado_pwr_2p_test)
+
+cat("\n")
+
+# 3. pwr.2p2n.test() para pruebas con dos proporciones y muestras de diferente tamaño
+# Parámetros
+n1 <- NULL  # Tamaño de la muestra 1 (a calcular)
+n2 <- 100   # Tamaño de la muestra 2 (valor conocido)
+
+# Calcular el tamaño de las muestras necesarias para alcanzar el poder deseado
+resultado_pwr_2p2n_test <- pwr.2p2n.test(h = h, n1 = n1, n2 = n2, sig.level = sig.level, power = power, alternative = alternative)
+cat("Resultado de pwr.2p2n.test() para dos proporciones (diferente tamaño):\n")
+print(resultado_pwr_2p2n_test)
+
+```
+
+```{r}
+# ======================
+# Prueba exacta de Fisher
+# ======================
+
+# Construir los datos y la tabla de contingencia
+Vacuna <- c(rep("Argh", 6), rep("Grrr", 11))
+Resultado <- c(rep("Humano", 12), rep("Vampiro", 5))
+Resultado <- factor(Resultado, levels = c("Vampiro", "Humano"))
+datos <- data.frame(Resultado, Vacuna)
+tabla <- xtabs(~., datos)
+print(tabla)
+
+# Aplicar la prueba exacta de Fisher a la tabla
+prueba_1 <- fisher.test(tabla)
+cat("\nPrueba exacta de Fisher usando la tabla de contingencia\n")
+cat("----------------------------------------------------------\n")
+print(prueba_1)
+
+# Aplicar la prueba directamente a las muestras
+prueba_2 <- fisher.test(Vacuna, Resultado)
+cat("\nPrueba exacta de Fisher usando las muestras\n")
+cat("------------------------------------------\n")
+print(prueba_2)
+
+# ==============================
+# Prueba chi-cuadrado de homogeneidad
+# ==============================
+
+programadores <- c(42, 56, 51, 27, 24)
+programadoras <- c(25, 24, 27, 15, 9)
+tabla <- as.table(rbind(programadores, programadoras))
+dimnames(tabla) <- list(
+  sexo = c("programadores", "programadoras"),
+  lenguajes = c("C", "Java", "Python", "Ruby", "Otro")
+)
+
+# Mostrar tabla
+cat("\nTabla de contingencia:\n")
+print(tabla)
+
+# Frecuencias esperadas
+esperadas <- round(chisq.test(tabla)$expected, 1)
+cat("\nFrecuencias esperadas:\n")
+print(esperadas)
+
+# Condiciones
+minima_frec_esperada <- 5
+cat("Frecuencias esperadas bajo", minima_frec_esperada, ":",
+    sum(esperadas < minima_frec_esperada), "\n")
+
+# Prueba chi-cuadrado
+cat("\nResultado de la prueba chi-cuadrado:\n")
+cat("=====================================\n")
+print(chisq.test(tabla))
+
+# ==============================
+# Prueba chi-cuadrado de bondad de ajuste
+# ==============================
+
+nomina <- c(236, 78, 204, 76, 66)
+muestra <- c(17, 9, 14, 10, 5)
+tabla <- as.table(rbind(nomina, muestra))
+dimnames(tabla) <- list(
+  grupo = c("Nomina", "Muestra"),
+  lenguajes = c("C", "Java", "Python", "Ruby", "Otro")
+)
+
+# Prueba chi-cuadrado
+prueba <- chisq.test(tabla)
+cat("\nFrecuencias esperadas:\n")
+print(round(prueba$expected, 1))
+cat("Frecuencias esperadas bajo", minima_frec_esperada, ":",
+    sum(prueba$expected < minima_frec_esperada), "\n")
+cat("\nResultado de la prueba chi-cuadrado:\n")
+print(prueba)
+
+# ==============================
+# Prueba chi-cuadrado de independencia y post-hoc
+# ==============================
+
+comestible <- c(404, 1948, 32, 228, 1596)
+venenoso <- c(48, 1708, 0, 600, 1556)
+tabla <- as.table(rbind(comestible, venenoso))
+dimnames(tabla) <- list(
+  tipo = c("comestible", "venenoso"),
+  sombrero = c("campana", "convexo", "hundido", "nudoso", "plano")
+)
+
+# Prueba chi-cuadrado
+prueba <- chisq.test(tabla)
+cat("\nFrecuencias esperadas:\n")
+esperadas <- round(prueba$expected, 3)
+print(esperadas)
+cat("Frecuencias esperadas bajo", minima_frec_esperada, ":",
+    sum(esperadas < minima_frec_esperada), "\n")
+cat("\nResultado de la prueba chi-cuadrado:\n")
+print(prueba)
+
+# Post-hoc si corresponde
+if (prueba$p.value < 0.05) {
+  cat("\nProcedimiento post-hoc:\n")
+  pares <- t(combn(colnames(tabla), 2))
+  pruebas_ph <- apply(pares, 1, function(p) {
+    sub_tabla <- tabla[, p]
+    if (any(chisq.test(sub_tabla)$expected < minima_frec_esperada)) {
+      fisher.test(sub_tabla)
+    } else {
+      chisq.test(sub_tabla)
+    }
+  })
+  
+  resultados <- data.frame(
+    Forma1 = pares[, 1],
+    Forma2 = pares[, 2],
+    p_val = sapply(pruebas_ph, function(p) p$p.value)
+  )
+  resultados$p_adj_holm <- p.adjust(resultados$p_val, method = "holm")
+  resultados$p_adj_by <- p.adjust(resultados$p_val, method = "BY")
+  print(resultados)
+}
+
+# ==============================
+# Prueba de McNemar
+# ==============================
+
+estudiante <- 1:25
+modelo_1 <- c(rep("Correcto", 16), rep("Incorrecto", 9))
+modelo_2 <- c(rep("Correcto", 9), rep("Incorrecto", 11), rep("Correcto", 5))
+datos <- data.frame(estudiante, modelo_2, modelo_1)
+tabla <- table(modelo_2, modelo_1)
+
+cat("\nTabla de contingencia:\n")
+print(tabla)
+
+# McNemar
+prueba_1 <- mcnemar.test(tabla, correct = FALSE)
+cat("\nPrueba de McNemar sobre la tabla de contingencia:\n")
+print(prueba_1)
+
+# Alternativa directa
+prueba_2 <- mcnemar.test(modelo_2, modelo_1, correct = FALSE)
+cat("\nPrueba de McNemar sobre las muestras:\n")
+print(prueba_2)
+
+```
+
+
+```{r}
+# ============================
+# Instalar y cargar paquetes necesarios
+# ============================
+
+paquetes_necesarios <- c("tidyverse", "RVAideMemoire", "rcompanion")
+
+for (pkg in paquetes_necesarios) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# ======================
+# Prueba Q de Cochran con post-hoc si corresponde
+# ======================
+
+# Crear la matriz de datos
+instancia <- 1:15
+annealing <- c(0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0)
+hormigas  <- c(0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+genetico  <- c(1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1)
+datos_anchos <- data.frame(instancia, annealing, hormigas, genetico)
+
+# Llevar a formato largo
+datos_largos <- datos_anchos |>
+  pivot_longer(cols = c("annealing", "hormigas", "genetico"),
+               names_to = "metaheuristica", values_to = "resultado")
+datos_largos$instancia <- factor(datos_largos$instancia)
+datos_largos$metaheuristica <- factor(datos_largos$metaheuristica)
+
+# Nivel de significación
+minimo_tamano_muestra <- 24
+alfa <- 0.05
+
+cat("Prueba global:\n")
+cat("================\n\n")
+
+# Mostrar tamaño de la muestra
+N <- nrow(datos_anchos[, -1]) * ncol(datos_anchos[, -1])
+cat("Tamaño de la muestra:", N, ifelse(N > minimo_tamano_muestra, ">", "<="), minimo_tamano_muestra, "\n")
+
+# Prueba Q de Cochran
+prueba <- cochran.qtest(resultado ~ metaheuristica | instancia,
+                        data = datos_largos, alpha = alfa)
+
+# Resultado
+cat("\nResultado de la prueba Q de Cochran:\n")
+cat("-------------------------------------\n")
+print(prueba)
+
+# Post-hoc si corresponde
+if (prueba[["p.value"]] < alfa) {
+  cat("\n\nProcedimiento post-hoc:\n")
+  cat("========================\n")
+
+  # Ajuste Holm
+  post_hoc_1 <- pairwiseMcnemar(resultado ~ metaheuristica | instancia,
+                                data = datos_largos,
+                                test = "mcnemar", correct = FALSE, method = "holm")
+
+  cat("\nProcedimiento post-hoc con ajuste de Holm:\n")
+  print(post_hoc_1)
+
+  # Ajuste Benjamini-Yekutieli
+  post_hoc_2 <- pairwiseMcnemar(resultado ~ metaheuristica | instancia,
+                                data = datos_largos,
+                                test = "mcnemar", correct = FALSE, method = "BY")
+
+  cat("\nProcedimiento post-hoc con ajuste Benjamini y Yekutieli:\n")
+  print(post_hoc_2)
+}
+
+
+```
+
+```{r}
+# ===============================
+# Instalar y cargar paquetes necesarios
+# ===============================
+paquetes_necesarios <- c("DescTools", "ez", "ggpubr", "tidyverse")
+
+for (pkg in paquetes_necesarios) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# ===============================
+# ANOVA con múltiples métodos y post-hoc
+# ===============================
+
+# Crear datos en formato ancho
+A <- c(23, 19, 25, 23, 20)
+B <- c(26, 24, 28, 23, 29)
+C <- c(19, 24, 20, 21, 17)
+datos_anchos <- data.frame(A, B, C)
+
+# Convertir a formato largo
+datos_largos <- datos_anchos |>
+  pivot_longer(cols = c("A", "B", "C"),
+               names_to = "Algoritmo",
+               values_to = "Tiempo")
+datos_largos$Algoritmo <- factor(datos_largos$Algoritmo)
+datos_largos$Instancia <- factor(rep(1:(nrow(datos_anchos)), times = 3))
+
+# Verificar normalidad con gráfico Q-Q
+g <- ggqqplot(datos_largos, x = "Tiempo", y = "Algoritmo", color = "Algoritmo",
+              palette = c("steelblue", "steelblue1", "steelblue4"))
+g <- g + facet_wrap(~Algoritmo)
+g <- g + rremove("x.ticks") + rremove("x.text")
+g <- g + rremove("y.ticks") + rremove("y.text")
+g <- g + rremove("axis.title")
+print(g)
+
+# ANOVA con aov()
+prueba <- aov(Tiempo ~ Algoritmo, data = datos_largos)
+cat("\nProcedimiento ANOVA usando aov()\n")
+cat("-----------------------------------\n")
+print(summary(prueba))
+
+# ANOVA con ezANOVA()
+prueba2 <- ezANOVA(data = datos_largos, dv = Tiempo,
+                   between = Algoritmo, wid = Instancia,
+                   return_aov = TRUE)
+cat("\nProcedimiento ANOVA usando ezANOVA()\n")
+cat("--------------------------------------\n")
+print(prueba2)
+
+# Gráfico del tamaño del efecto
+g2 <- ezPlot(data = datos_largos, dv = Tiempo,
+             wid = Instancia, between = Algoritmo,
+             y_lab = "Tiempo promedio de ejecución [ms]",
+             x = Algoritmo)
+g2 <- g2 + theme_pubr()
+g2$layers[[1]]$aes_params$colour <- "steelblue"
+g2$layers[[2]]$aes_params$colour <- "steelblue"
+g2$layers[[3]]$aes_params$colour <- "steelblue"
+print(g2)
+
+# Nivel de significación
+alfa <- 0.025
+
+# Post-hoc Holm
+holm <- pairwise.t.test(datos_largos$Tiempo, datos_largos$Algoritmo,
+                        p.adj = "holm", pool.sd = TRUE,
+                        paired = FALSE, conf.level = 1 - alfa)
+cat("\nProcedimiento post-hoc de Holm\n")
+cat("-----------------------------------\n")
+print(holm)
+
+# Post-hoc Benjamini-Hochberg
+bh <- pairwise.t.test(datos_largos$Tiempo, datos_largos$Algoritmo,
+                      p.adj = "fdr", pool.sd = TRUE,
+                      paired = FALSE, conf.level = 1 - alfa)
+cat("\nProcedimiento post-hoc de Benjamini y Hochberg\n")
+cat("----------------------------------------------------\n")
+print(bh)
+
+# Post-hoc HSD de Tukey
+hsd <- TukeyHSD(prueba, "Algoritmo", ordered = TRUE, conf.level = 1 - alfa)
+cat("\nProcedimiento HSD de Tukey\n")
+cat("-----------------------------------\n")
+print(hsd)
+
+# Contrastes para Scheffé
+contrastes <- matrix(c(
+  1, -1, 0,
+  1, 0, -1,
+  0, 1, -1,
+  1, -0.5, -0.5,
+  -0.5, 1, -0.5,
+  -0.5, -0.5, 1
+), ncol = 3, byrow = TRUE)
+contrastes <- t(contrastes)
+
+# Post-hoc Scheffé
+scheffe <- ScheffeTest(x = prueba, which = "Algoritmo",
+                       contrasts = contrastes,
+                       conf.level = 1 - alfa)
+cat("\nProcedimiento post-hoc de Scheffé\n")
+cat("-----------------------------------\n")
+print(scheffe)
+
+```
+
+```{r}
+# ===========================
+# Instalar y cargar paquetes necesarios
+# ===========================
+paquetes <- c("emmeans", "ez", "ggpubr", "nlme", "tidyr")
+
+for (pkg in paquetes) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# ===========================
+# Preparación de datos
+# ===========================
+Instancia <- factor(1:6)
+Bubblesort <- c(31.6, 29.3, 30.7, 30.8, 29.8, 30.3)
+Mergesort <- c(25.0, 25.7, 25.7, 23.7, 25.5, 24.7)
+Quicksort <- c(23.2, 22.6, 23.4, 23.3, 21.8, 23.9)
+Radixsort <- c(30.1, 28.4, 28.7, 28.3, 29.9, 29.1)
+
+datos_anchos <- data.frame(Instancia, Bubblesort, Mergesort, Quicksort, Radixsort)
+
+# Convertir a formato largo
+datos_largos <- datos_anchos |>
+  pivot_longer(-Instancia, names_to = "Algoritmo", values_to = "Tiempo") |>
+  mutate(Algoritmo = factor(Algoritmo))
+
+# ===========================
+# Verificación de normalidad con Q-Q plots
+# ===========================
+tonos_azules <- c("steelblue", "steelblue1", "cornflowerblue", "steelblue4")
+
+g <- ggqqplot(datos_largos, x = "Tiempo", y = "Algoritmo", color = "Algoritmo", palette = tonos_azules) +
+  facet_wrap(~Algoritmo) +
+  rremove("x.ticks") + rremove("x.text") +
+  rremove("y.ticks") + rremove("y.text") +
+  rremove("axis.title")
+
+print(g)
+
+cat("Procedimiento ómnibus\n")
+cat("=====================\n\n")
+
+# ===========================
+# ANOVA para medidas repetidas
+# ===========================
+# Con aov()
+prueba_aov <- aov(Tiempo ~ Algoritmo + Error(Instancia / Algoritmo), data = datos_largos)
+cat("\nANOVA para muestras repetidas usando aov():\n")
+print(summary(prueba_aov))
+
+# Con ezANOVA
+prueba_ez <- ezANOVA(data = datos_largos, dv = Tiempo, wid = Instancia, within = Algoritmo)
+cat("\nANOVA para muestras repetidas usando ezANOVA():\n")
+print(prueba_ez)
+
+# ===========================
+# Gráfico de efecto
+# ===========================
+g2 <- ezPlot(data = datos_largos, dv = Tiempo, wid = Instancia, within = Algoritmo,
+             y_lab = "Tiempo promedio de ejecución [ms]", x = Algoritmo) +
+  theme_pubr()
+
+for (i in 1:3) {
+  g2$layers[[i]]$aes_params$colour <- "steelblue"
+}
+
+print(g2)
+
+# ===========================
+# Post-hoc tests
+# ===========================
+cat("\nProcedimiento post-hoc\n")
+cat("======================\n")
+
+alfa <- 0.01
+
+# Holm
+holm <- pairwise.t.test(datos_largos$Tiempo, datos_largos$Algoritmo,
+                        p.adj = "holm", paired = TRUE, conf.level = 1 - alfa)
+cat("\nPost-hoc de Holm:\n")
+print(holm)
+
+# Benjamini-Hochberg
+bh <- pairwise.t.test(datos_largos$Tiempo, datos_largos$Algoritmo,
+                      p.adj = "fdr", paired = TRUE, conf.level = 1 - alfa)
+cat("\nPost-hoc de Benjamini y Hochberg:\n")
+print(bh)
+
+# ===========================
+# Tukey HSD con modelo mixto
+# ===========================
+modelo_mixto <- lme(Tiempo ~ Algoritmo, data = datos_largos, random = ~1 | Instancia)
+medias <- emmeans(modelo_mixto, "Algoritmo")
+
+hsd <- contrast(medias, method = "pairwise", adjust = "tukey")
+cat("\nPost-hoc HSD de Tukey:\n")
+print(hsd, infer = TRUE, level = 1 - alfa)
+
+print(
+  plot(hsd, level = 1 - alfa, colors = "steelblue") +
+    ggtitle("Post-hoc HSD de Tukey") +
+    xlab("Diferencias en tiempos de ejecución\npara las mismas instancias") +
+    ylab("Pares de algoritmos") +
+    theme_pubr()
+)
+
+# ===========================
+# Scheffé
+# ===========================
+contrastes <- list(
+  "Q vs B" = c(-1, 0, 1, 0),
+  "Q vs M" = c(0, -1, 1, 0),
+  "Q vs R" = c(0, 0, 1, -1),
+  "M vs B" = c(-1, 1, 0, 0),
+  "M vs R" = c(0, 1, 0, -1)
+)
+
+scheffe <- contrast(medias, method = contrastes, adjust = "scheffe")
+cat("\nPost-hoc de Scheffé:\n")
+print(scheffe, infer = TRUE, level = 1 - alfa)
+
+print(
+  plot(scheffe, level = 1 - alfa, colors = "steelblue") +
+    ggtitle("Post-hoc de Scheffé") +
+    xlab("Diferencias en tiempos de ejecución\npara las mismas instancias") +
+    ylab("Pares de algoritmos") +
+    theme_pubr()
+)
+
+# ===========================
+# Tamaños del efecto (EMM)
+# ===========================
+cat("\nIntervalos de confianza para las medias marginales:\n")
+print(summary(medias, level = 1 - alfa, adjust = "none"))
+
+print(
+  plot(medias, level = 1 - alfa, adjust = "none", colors = "steelblue") +
+    ggtitle(sprintf("Tamaño del efecto (%d%% IC)", round((1 - alfa) * 100))) +
+    xlab("EMM del tiempo de ejecución\nrequerido para las mismas instancias") +
+    theme_pubr()
+)
+
+```
+
+```{r}
+# Instalar y cargar ggpubr si no está disponible
+if (!require(ggpubr)) {
+  install.packages("ggpubr", dependencies = TRUE)
+  library(ggpubr)
+}
+
+# ======================
+# Conversión Celsius a Fahrenheit
+# ======================
+Celsius <- c(-4, 0, 18, 30, 35, 50, 100)
+Fahrenheit <- 1.8 * Celsius + 32
+
+cat("Temperaturas en grados Celsius:\n")
+print(Celsius)
+cat("\nTemperaturas en grados Fahrenheit:\n")
+print(Fahrenheit)
+
+# ======================
+# Transformación logarítmica sobre datos animales
+# ======================
+
+animal <- c(
+  "Mountain beaver", "Cow", "Grey wolf", "Goat", "Guinea pig",
+  "Dipliodocus", "Asian elephant", "Donkey", "Horse",
+  "Potar monkey", "Cat", "Giraffe", "Gorilla", "Human",
+  "African elephant", "Triceratops", "Rhesus monkey", "Kangaroo",
+  "Golden hamster", "Mouse", "Rabbit", "Sheep", "Jaguar",
+  "Chimpanzee", "Brachiosaurus", "Mole", "Pig"
+)
+
+peso_cuerpo <- c(
+  1.35, 465, 36.33, 27.66, 1.04, 11700, 2547, 187.1, 521, 10,
+  3.3, 529, 207, 62, 6654, 9400, 6.8, 35, 0.12, 0.023, 2.5,
+  55.5, 100, 52.16, 87000, 0.122, 192
+)
+
+peso_cerebro <- c(
+  465, 423, 119.5, 115, 5.5, 50, 4603, 419, 655, 115, 25.6,
+  680, 406, 1320, 5712, 70, 179, 56, 1, 0.4, 12.1, 175, 157,
+  440, 154.5, 3, 180
+)
+
+# Crear data frame
+datos <- data.frame(
+  animal = animal,
+  peso_cuerpo = peso_cuerpo,
+  peso_cerebro = peso_cerebro
+)
+
+# Aplicar logaritmo natural
+datos$peso_cuerpo_log <- log(datos$peso_cuerpo)
+datos$peso_cerebro_log <- log(datos$peso_cerebro)
+
+# ======================
+# Histogramas
+# ======================
+h1 <- gghistogram(datos, x = "peso_cerebro", bins = 10,
+                  xlab = "Peso del cerebro [g]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue") +
+  theme(axis.title = element_text(size = rel(0.7)),
+        axis.text = element_text(size = rel(0.8)))
+
+h2 <- gghistogram(datos, x = "peso_cerebro_log", bins = 10,
+                  xlab = "Peso del cerebro [log(g)]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue") +
+  theme(axis.title = element_text(size = rel(0.7)),
+        axis.text = element_text(size = rel(0.8)))
+
+# ======================
+# Gráficos de dispersión
+# ======================
+g1 <- ggscatter(datos, x = "peso_cuerpo", y = "peso_cerebro",
+                color = "steelblue", xlab = "Peso corporal [kg]",
+                ylab = "Peso del cerebro [g]") +
+  theme(axis.title = element_text(size = rel(0.7)),
+        axis.text = element_text(size = rel(0.8)))
+
+g2 <- ggscatter(datos, x = "peso_cuerpo_log", y = "peso_cerebro_log",
+                color = "steelblue", xlab = "Peso corporal [log(kg)]",
+                ylab = "Peso del cerebro [log(g)]") +
+  theme(axis.title = element_text(size = rel(0.7)),
+        axis.text = element_text(size = rel(0.8)))
+
+# ======================
+# Composición final
+# ======================
+grafico <- ggarrange(h1, h2, g1, g2, nrow = 2, ncol = 2, labels = "AUTO")
+titulo <- text_grob("Efecto de la transformación logarítmica", face = "bold", size = 14)
+grafico <- annotate_figure(grafico, top = titulo)
+
+print(grafico)
+
+# =============================
+# INSTALACIÓN Y CARGA DE PAQUETES
+# =============================
+paquetes <- c("ggpubr", "latex2exp", "rcompanion")
+
+for (pkg in paquetes) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+```
+
+```{r}
+# =============================
+# DATOS DE POBLACIÓN
+# =============================
+Year <- seq(1610, 1850, length.out = 25)
+
+Population <- c(
+  0.00035, 0.002302, 0.004646, 0.026634, 0.050368, 0.075058,
+  0.111935, 0.151507, 0.210372, 0.250888, 0.331711, 0.466185,
+  0.629445, 0.905563, 1.170760, 1.593625, 2.148076, 2.780369,
+  3.929214, 5.308483, 7.239881, 9.638453, 12.866020, 17.069453,
+  23.191876
+)
+datos <- data.frame(Year, Population)
+
+# =============================
+# GRÁFICO ORIGINAL
+# =============================
+ho <- gghistogram(datos, x = "Population", bins = 10,
+                  xlab = "Población (millones)", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue") +
+  theme(axis.title = element_text(size = rel(0.9)),
+        axis.text = element_text(size = rel(0.8)))
+
+go <- ggscatter(datos, x = "Year", y = "Population", color = "steelblue",
+                xlab = "Año", ylab = "Población (millones)") +
+  theme(axis.title = element_text(size = rel(0.9)),
+        axis.text = element_text(size = rel(0.8)))
+
+original <- ggarrange(ho, go, ncol = 2, nrow = 1, labels = "AUTO")
+titulo <- text_grob("Histograma de la población y población por año", face = "bold", size = 14)
+original <- annotate_figure(original, top = titulo)
+print(original)
+
+# =============================
+# TRANSFORMACIONES DE TUKEY
+# =============================
+lambda_menos_dos <- -1 / (datos$Population^2) / 1e6
+lambda_menos_uno <- -1 / datos$Population / 1e3
+lambda_menos_un_medio <- -1 / sqrt(datos$Population) / 10
+lambda_cero <- log(datos$Population)
+lambda_un_medio <- sqrt(datos$Population)
+lambda_dos <- (datos$Population^2) / 100
+
+transformaciones <- data.frame(
+  Year,
+  lambda_menos_dos,
+  lambda_menos_uno,
+  lambda_menos_un_medio,
+  lambda_cero,
+  lambda_un_medio,
+  lambda_dos
+)
+
+# =============================
+# GRÁFICOS DE DISPERSIÓN DE TUKEY
+# =============================
+gt1 <- ggscatter(transformaciones, x = "Year", y = "lambda_menos_dos", color = "steelblue", xlab = "Año") +
+  ylab(TeX(r'(Población transformada $\times 10^6$)')) +
+  labs(subtitle = TeX(r'($\lambda = -2$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+gt2 <- ggscatter(transformaciones, x = "Year", y = "lambda_menos_uno", color = "steelblue", xlab = "Año") +
+  ylab(TeX(r'(Población transformada $\times 10^3$)')) +
+  labs(subtitle = TeX(r'($\lambda = -1$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+gt3 <- ggscatter(transformaciones, x = "Year", y = "lambda_menos_un_medio", color = "steelblue", xlab = "Año") +
+  ylab(TeX(r'(Población transformada $\times 10^1$)')) +
+  labs(subtitle = TeX(r'($\lambda = -1/2$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+gt4 <- ggscatter(transformaciones, x = "Year", y = "lambda_cero", color = "steelblue", xlab = "Año") +
+  ylab("Población transformada") +
+  labs(subtitle = TeX(r'($\lambda = 0$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+gt5 <- ggscatter(transformaciones, x = "Year", y = "lambda_un_medio", color = "steelblue", xlab = "Año") +
+  ylab("Población transformada") +
+  labs(subtitle = TeX(r'($\lambda = 1/2$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+gt6 <- ggscatter(transformaciones, x = "Year", y = "lambda_dos", color = "steelblue", xlab = "Año") +
+  ylab(TeX(r'(Población transformada $\times 10^2$)')) +
+  labs(subtitle = TeX(r'($\lambda = 2$)')) +
+  theme(axis.title = element_text(size = rel(0.8)), axis.text = element_text(size = rel(0.8)))
+
+# =============================
+# FIGURA FINAL
+# =============================
+dispersiones <- ggarrange(gt1, gt2, gt3, gt4, gt5, gt6, ncol = 3, nrow = 2, align = "hv")
+titulo_disp <- text_grob("Población transformada por año (Tukey)", face = "bold", size = 14)
+dispersiones <- annotate_figure(dispersiones, top = titulo_disp)
+print(dispersiones)
+```
+
+```{r}
+# =============================
+# INSTALAR Y CARGAR PAQUETES
+# =============================
+if (!require(car)) {
+  install.packages("car", dependencies = TRUE)
+  library(car)
+}
+
+# =============================
+# PRUEBAS DE NORMALIDAD, HOMOGENEIDAD Y KRUSKAL-WALLIS
+# =============================
+
+# Construcción del conjunto de datos
+A <- c(95, 36, 58, 11, 56, 77, 49, 9, 11, 29, 28, 13)
+B <- c(22, 63, 26, 20, 24, 23, 23, 24, 53)
+C <- c(39, 77, 26, 34, 26, 26, 8, 49, 28, 40, 64, 7, 11, 7)
+D <- c(14, 8, 15, 10, 20, 6, 10, 13)
+
+Tiempo <- c(A, B, C, D)
+Criterio <- factor(c(
+  rep("A", length(A)),
+  rep("B", length(B)),
+  rep("C", length(C)),
+  rep("D", length(D))
+))
+datos <- data.frame(Tiempo, Criterio)
+
+# Nivel de significancia
+alfa <- 0.05
+
+# =============================
+# Verificación de supuestos
+# =============================
+# Normalidad por Shapiro-Wilk (grupo a grupo)
+sh_tests <- by(datos$Tiempo, datos$Criterio, shapiro.test)
+normalidad <- data.frame(
+  W = sapply(sh_tests, function(t) round(t$statistic, 4)),
+  p.value = sapply(sh_tests, function(t) round(t$p.value, 4))
+)
+rownames(normalidad) <- levels(Criterio)
+
+# Homocedasticidad por prueba de Levene
+homogeneidad_var <- leveneTest(Tiempo ~ Criterio, data = datos)
+
+# Mostrar resultados
+cat("Pruebas de normalidad Shapiro-Wilk:\n")
+cat("------------------------------------\n")
+print(normalidad)
+
+cat("\nPrueba de homocedasticidad de Levene:\n")
+cat("--------------------------------------\n")
+print(homogeneidad_var)
+
+# =============================
+# Prueba de Kruskal-Wallis
+# =============================
+kruskal_result <- kruskal.test(Tiempo ~ Criterio, data = datos)
+cat("\nResultados de la prueba ómnibus (Kruskal-Wallis):\n")
+cat("--------------------------------------------------\n")
+print(kruskal_result)
+
+# =============================
+# Post-hoc con Benjamini-Hochberg si p < alfa
+# =============================
+if (kruskal_result$p.value < alfa) {
+  post_hoc <- pairwise.wilcox.test(datos$Tiempo, datos$Criterio,
+                                   p.adjust.method = "BH",
+                                   paired = FALSE, exact = FALSE)
+  cat("\nResultados del análisis post-hoc (Benjamini-Hochberg):\n")
+  cat("--------------------------------------------------------\n")
+  print(post_hoc)
+}
+
+# =============================
+# PRUEBA DE FRIEDMAN PARA DISEÑOS BLOQUES
+# =============================
+# Nuevo dataset para Friedman
+A <- c(3.6, 4.2, 3.5, 3.2, 3.6, 3.5, 3.3, 3.5, 4.1, 3.7, 4.0, 3.5, 3.3, 3.4, 3.6)
+B <- c(4.4, 5.0, 4.3, 3.6, 4.5, 4.2, 3.9, 4.3, 4.8, 4.5, 4.8, 4.2, 3.7, 4.0, 4.5)
+C <- c(4.9, 5.0, 4.7, 3.2, 5.0, 4.6, 3.6, 4.9, 5.0, 5.0, 5.0, 4.4, 3.2, 3.7, 4.9)
+
+Puntuacion <- c(A, B, C)
+Interfaz <- factor(rep(c("A", "B", "C"), each = 15))
+Caso <- rep(1:15, times = 3)
+
+datos_friedman <- data.frame(Caso, Puntuacion, Interfaz)
+
+# Nivel de significación
+alfa_friedman <- 0.01
+
+# Prueba de Friedman
+friedman_result <- friedman.test(Puntuacion ~ Interfaz | Caso, data = datos_friedman)
+cat("\nResultados de la prueba de Friedman:\n")
+cat("-------------------------------------\n")
+print(friedman_result)
+
+# Post-hoc de Holm si corresponde
+if (friedman_result$p.value < alfa_friedman) {
+  post_hoc_friedman <- pairwise.wilcox.test(datos_friedman$Puntuacion, datos_friedman$Interfaz,
+                                            p.adjust.method = "holm",
+                                            paired = TRUE, exact = FALSE)
+  cat("\nResultados del análisis post-hoc (Holm):\n")
+  cat("----------------------------------------\n")
+  print(post_hoc_friedman)
+}
+
+```
+```{r}
+library(ggpubr)
+library(WRS2)
+
+# Construir la matriz de datos
+a <- c(25.1, 25.2, 25.3, 25.3, 25.4, 25.4, 25.5, 25.5, 25.5, 25.6, 25.8, 25.8,
+       26.0, 26.1, 26.2, 26.2, 26.2, 26.2, 26.3, 26.4, 26.5, 26.5, 26.5, 26.6,
+       26.7, 26.7, 26.7, 26.8, 26.9, 27.0, 27.1, 27.2, 27.3, 27.8, 28.4, 28.5,
+       28.8, 29.4, 30.2, 31.8, 33.1, 33.3, 33.7)
+
+b <- c(24.1, 24.4, 24.4, 24.5, 24.7, 24.8, 24.8, 25.1, 25.2, 25.2, 25.2, 
+       25.3, 25.5, 25.7, 25.7, 26.3, 26.3, 26.4, 26.5, 26.7, 27.2, 27.7, 28.3,
+       28.4, 28.6, 28.6, 28.7, 29.6, 29.9, 30.1, 30.5)
+
+Tiempo <- c(a, b)
+Algoritmo <- c(rep("A", length(a)), rep("B", length(b)))
+datos <- data.frame(Tiempo, Algoritmo)
+
+# Comprobar normalidad
+qq <- ggqqplot(datos, x = "Tiempo", facet.by = "Algoritmo",
+               palette = c("steelblue", "steelblue1"), color = "Algoritmo",
+               xlab = "Cuantil teórico", ylab = "Tiempo de ejecución [ms]")
+qq <- qq + theme(legend.position = "none")
+print(qq)
+# Aplicar una poda del 20% a las muestras
+gamma <- 0.2
+n_a <- length(a)
+n_b <- length(b)
+poda_a <- floor(n_a * gamma)
+poda_b <- floor(n_b * gamma)
+
+a_trunc <- a[poda_a:(n_a - poda_a)]
+b_trunc <- b[poda_b:(n_b - poda_b)]
+
+Tiempo_t <- c(a_trunc, b_trunc)
+Algoritmo_t <- c(rep("A", length(a_trunc)), rep("B", length(b_trunc)))
+datos_t <- data.frame(Tiempo_t, Algoritmo_t)
+
+qq_t <- ggqqplot(datos_t, x = "Tiempo_t", facet.by = "Algoritmo_t",
+                 palette = c("steelblue", "steelblue1"), color = "Algoritmo_t",
+                 xlab = "Cuantil teórico", 
+                 ylab = "Tiempo de ejecución truncado [ms]")
+qq_t <- qq_t + theme(legend.position = "none")
+print(qq_t)
+# Aplicar y mostrar la prueba de Yuen asintótica
+prueba <- yuen(Tiempo ~ Algoritmo, data = datos, tr = gamma)
+cat("\nPrueba de Yuen para dos muestras independientes\n")
+cat("-----------------------------------------------\n")
+print(prueba)
+
+# Establecer cantidad de repeticiones con bootstrapping
+B <- 999
+
+# Aplicar la prueba de Yuen con bootstrapping y la media
+set.seed(135)
+prueba_media <- pb2gen(Tiempo ~ Algoritmo, data = datos, est = "mean", nboot = B)
+
+# Aplicar la prueba de Yuen con bootstrapping y la mediana
+set.seed(135)
+prueba_mediana <- pb2gen(Tiempo ~ Algoritmo, data = datos, est = "median", nboot = B)
+
+# Mostrar los resultados
+cat("\nPrueba de Yuen - implementación con bootstrapping\n")
+cat("\nResultado al usar bootstrapping y la media como estimador\n")
+cat("-----------------------------------------------------------\n")
+print(prueba_media)
+cat("\nResultado al usar bootstrapping y la mediana como estimador\n")
+cat("------------------------------------------------------------\n")
+print(prueba_mediana)
+library(ggpubr)
+library(WRS2)
+
+# Construir las estructuras con los datos observados
+a <- c(32.3, 32.0, 32.0, 36.0, 34.2, 32.7, 32.5, 32.0, 32.1, 33.4,
+       32.3, 32.1, 32.1, 33.4, 31.4, 36.6, 34.5, 33.4, 31.8, 34.7,
+       32.7, 32.1, 36.7, 32.3, 32.6)
+
+b <- c(33.6, 36.0, 33.2, 33.9, 31.9, 37.0, 28.0, 30.2, 40.4,
+       35.6, 35.0, 37.1, 35.7, 33.9, 32.6, 32.3, 39.0, 32.0,
+       35.4, 34.4, 34.7, 52.9, 35.3, 39.2, 39.9)
+
+dif <- a - b
+
+# Aplicar una poda del 20% al conjunto de diferencias
+gamma <- 0.2
+n <- length(dif)
+poda <- floor(n * gamma)
+dif <- sort(dif)
+dif_trunc <- dif[(poda + 1):(n - poda)]
+n_t <- length(dif_trunc)
+
+# Obtener gráficos Q-Q de las diferencias originales y podadas
+datos <- data.frame(Diferencia = c(dif, dif_trunc),
+                    Muestra = c(rep("Original", n), rep("Podados", n_t)))
+qq <- ggqqplot(datos, x = "Diferencia", facet.by = "Muestra",
+               palette = c("steelblue", "steelblue1"), color = "Muestra",
+               xlab = "Cuantil teórico",
+               ylab = "Diferencias en tiempos\nde ejecución [ms]")
+qq <- qq + theme(legend.position = "none")
+print(qq)
+
+# Aplicar y mostrar la prueba de Yuen para muestras apareadas
+gamma <- 0.2
+prueba <- yuend(x = a, y = b, tr = gamma)
+cat("Prueba de Yuen para dos muestras pareadas\n")
+cat("------------------------------------------\n")
+print(prueba)
+
+
+```
+```{r}
+library(ggpubr)
+library(WRS2)
+
+# Construir las estructuras con los datos
+A <- c(25.1, 25.2, 25.3, 25.3, 25.4, 25.4, 25.5, 25.5, 25.5, 25.6, 25.8, 25.8,
+       25.9, 25.9, 26.0, 26.0, 26.2, 26.2, 26.2, 26.3, 26.4, 26.5, 26.5,
+       26.6, 26.7, 26.7, 26.9, 26.9, 26.9, 27.0, 27.1, 27.3, 27.8, 28.4, 28.5,
+       29.0, 29.8, 30.2, 31.8, 31.9, 33.3, 33.7)
+
+B <- c(24.1, 24.4, 24.4, 24.5, 24.7, 24.8, 24.8, 25.1, 25.2, 25.2, 25.2, 
+       25.3, 25.4, 25.5, 25.7, 25.7, 26.3, 26.3, 26.4, 26.5, 26.7, 27.2, 27.7, 28.3,
+       28.4, 28.4, 28.6, 28.7, 29.6, 29.9, 30.1, 30.5)
+
+C <- c(24.5, 24.5, 24.5, 24.5, 24.5, 24.5, 24.6, 24.6, 24.6, 24.6,
+       24.6, 24.7, 24.7, 24.7, 24.7, 24.8, 25.0, 25.0, 25.0, 25.2, 25.2,
+       25.2, 25.2, 25.5, 25.7, 25.9, 26.2, 26.5, 26.5, 26.7, 27.0, 29.2,
+       29.9, 30.1)
+
+Tiempo <- c(A, B, C)
+Algoritmo <- c(rep("A", length(A)), rep("B", length(B)), rep("C", length(C)))
+Algoritmo <- factor(Algoritmo)
+datos <- data.frame(Tiempo, Algoritmo)
+
+# Obtener gráficos Q-Q de las muestras
+qq <- ggqqplot(datos, x = "Tiempo", facet.by = "Algoritmo", color = "Algoritmo",
+               palette = c("steelblue", "steelblue1", "steelblue4"),
+               xlab = "Cuantil teórico", ylab = "Tiempos\nde ejecución [ms]")
+qq <- qq + theme(legend.position = "none")
+print(qq)
+
+# Fijar nivel de significación, nivel de poda y nro. de iteraciones bootstrap
+alfa <- 0.05
+gamma <- 0.2
+nboot <- 999
+
+# Comparar los diferentes algoritmos usando medias truncadas
+set.seed(666)
+una_via <- t1way(Tiempo ~ Algoritmo, data = datos,
+                 tr = gamma, alpha = alfa, nboot = nboot)
+
+cat("Análisis de una vía para muestras independientes (asintótico)\n")
+cat("------------------------------------------------------------\n")
+print(una_via)
+
+if(una_via[["p.value"]] < alfa) {
+  una_via_ph <- lincon(Tiempo ~ Algoritmo, data = datos,
+                       tr = gamma, alpha = alfa)
+
+  cat("\nAnálisis post-hoc para muestras independientes (asintótico)\n")
+  cat("------------------------------------------------------------\n")
+  print(una_via_ph)
+}
+# Comparar los diferentes algoritmos usando medias truncadas y bootstrapping
+set.seed(666)
+una_via_bt <- t1waybt(Tiempo ~ Algoritmo, data = datos,
+                      tr = gamma, nboot = nboot)
+
+cat("Análisis de una vía para muestras independientes (bootstrapped)\n")
+cat("---------------------------------------------------------------\n")
+print(una_via_bt)
+
+if(una_via_bt[["p.value"]] < alfa) {
+  set.seed(666)
+  una_via_bt_ph <- mcppb20(Tiempo ~ Algoritmo, data = datos,
+                           tr = gamma, nboot = nboot)
+
+  cat("\nAnálisis post-hoc para muestras independientes (bootstrapped)\n")
+  cat("---------------------------------------------------------------\n")
+  print(una_via_bt_ph)
+}
+
+```
+```{r}
+library(dplyr)
+library(ggpubr)
+library(tidyr)
+library(WRS2)
+
+# Construir las estructuras con los datos
+A <- c(32.0, 32.0, 32.0, 32.0, 32.1, 32.1, 32.1, 32.2, 32.3, 32.3, 32.5,
+       32.7, 32.7, 32.7, 33.1, 33.4, 33.9, 34.1, 34.2, 34.5, 36.0, 36.6,
+       36.7, 37.2, 38.0)
+
+B <- c(33.0, 33.0, 33.0, 33.0, 33.0, 33.3, 33.3, 33.3, 33.3, 33.5,
+       33.6, 33.7, 33.9, 34.2, 34.2, 34.3, 34.3, 34.4, 34.5, 34.6,
+       34.8, 34.9, 40.2)
+
+C <- c(32.0, 32.2, 32.5, 32.6, 32.7, 32.7, 32.7, 33.0, 33.2, 33.4, 33.6,
+       33.6, 33.9, 34.1, 34.2, 34.4, 34.5, 34.6, 34.7, 36.3, 36.6,
+       36.7, 38.9, 39.2)
+
+# Igualar longitud (recortando al mínimo)
+n <- min(length(A), length(B), length(C))
+A <- A[1:n]
+B <- B[1:n]
+C <- C[1:n]
+
+Instancia <- factor(1:n)
+datos_anchos <- data.frame(Instancia, A, B, C)
+dif_anchos <- data.frame(A_B = A - B, A_C = A - C, B_C = B - C)
+
+# Llevar las matrices de datos a formato largo
+datos <- datos_anchos |>
+  pivot_longer(c("A", "B", "C"), names_to = "Algoritmo", values_to = "Tiempo") |>
+  mutate(Algoritmo = factor(Algoritmo))
+
+dif <- dif_anchos |>
+  pivot_longer(everything(), names_to = "Algoritmos", values_to = "Diferencia") |>
+  mutate(Algoritmos = factor(Algoritmos))
+
+# Obtener gráficos Q-Q de las diferencias
+qq <- ggqqplot(dif, x = "Diferencia", facet.by = "Algoritmos",
+               color = "Algoritmos",
+               palette = c("steelblue", "steelblue1", "steelblue4"),
+               xlab = "Cuantil teórico",
+               ylab = "Diferencias en tiempos\nde ejecución [ms]")
+qq <- qq + theme(legend.position = "none")
+print(qq)
+# Fijar nivel de significación y nivel de poda
+alfa <- 0.05
+gamma <- 0.2
+
+# Comparar los algoritmos usando medias truncadas de las diferencias
+mr_rob <- rmanova(y = datos[["Tiempo"]], groups = datos[["Algoritmo"]],
+                  blocks = datos[["Instancia"]], tr = gamma)
+
+cat("Análisis de una vía para medidas repetidas (asintótico)\n")
+cat("--------------------------------------------------------\n")
+print(mr_rob)
+
+if(mr_rob[["p.value"]] < alfa) {
+  mr_rob_ph <- rmmcp(y = datos[["Tiempo"]], groups = datos[["Algoritmo"]],
+                     blocks = datos[["Instancia"]], tr = gamma, alpha = alfa)
+
+  cat("\nAnálisis post-hoc para medidas repetidas (asintótico)\n")
+  cat("--------------------------------------------------------\n")
+  print(mr_rob_ph)
+}
+# Fijar la cantidad de iteraciones bootstrap
+nboot <- 999
+
+# Comparar los algoritmos usando diferencias truncadas y bootstrapping
+set.seed(666)
+mr_bt <- rmanovab(y = datos[["Tiempo"]], groups = datos[["Algoritmo"]],
+                  blocks = datos[["Instancia"]], tr = gamma, nboot = nboot)
+
+cat("Análisis de una vía para medidas repetidas (bootstrapped)\n")
+cat("----------------------------------------------------------\n")
+print(mr_bt)
+
+if(mr_bt[["test"]] > mr_bt[["crit"]]) {
+  set.seed(666)
+  mr_bt_ph <- pairdepb(y = datos[["Tiempo"]], groups = datos[["Algoritmo"]],
+                       blocks = datos[["Instancia"]], tr = gamma, nboot = nboot)
+
+  cat("\nAnálisis post-hoc para medidas repetidas (bootstrapped)\n")
+  cat("----------------------------------------------------------\n")
+  print(mr_bt_ph)
+}
+
+
+```
+
+```{r}
+if(!require(boot)) install.packages("boot"); library(boot)
+if(!require(bootES)) install.packages("bootES"); library(bootES)
+
+
+# Crear muestra inicial, mostrar su histograma y calcular la media
+muestra <- c(79, 75, 84, 75, 94, 82, 76, 90, 79, 88)
+
+# Establecer cantidad de remuestreos y nivel de significación
+B <- 2000
+alfa <- 0.01
+
+# Función para calcular el estadístico: media de la remuestra
+media <- function(valores, i) {
+  mean(valores[i])
+}
+
+# Construir la distribución bootstrap usando el paquete boot
+set.seed(432)
+distribucion_b <- boot(muestra, statistic = media, R = B)
+
+# Mostrar y graficar la distribución bootstrap
+print(distribucion_b)
+plot(distribucion_b)
+
+# Construir y mostrar los intervalos de confianza
+ics <- boot.ci(distribucion_b, conf = 1 - alfa,
+               type = c("norm", "perc", "bca"))
+cat("\n\n")
+print(ics)
+# Construir la distribución bootstrap usando el paquete bootES
+# (esta llamada además calcula (solo) un intervalo de confianza
+# y grafica la distribución bootstrap).
+set.seed(432)
+distribucion_bES <- bootES(muestra, R = B, ci.type = "bca",
+                           ci.conf = 1 - alfa, plot = TRUE)
+
+# Mostrar bootstrap obtenida con bootES
+print(distribucion_bES)
+# Desplazar la distribución bootstrap para que se centre en el valor nulo
+valor_nulo <- 75
+desplazamiento <- mean(distribucion_b[["t"]]) - valor_nulo
+distribucion_nula <- distribucion_b[["t"]] - desplazamiento
+
+# Determinar y mostrar la media observada y el valor p
+valor_observado <- media(muestra, 1:length(muestra))
+P <- (sum(distribucion_nula > valor_observado) + 1) / (B + 1)
+cat("Media observada:", valor_observado, "\n")
+cat("Valor p:", P, "\n")
+
+```
+```{r}
+library(boot)
+library(ggpubr)
+
+if(!require(simpleboot)) install.packages("simpleboot"); library(simpleboot)
+
+# Definir las muestras obtenidas
+hombres <- c(1.3, 1.5, 1.6, 1.7, 1.7, 1.9, 2.3, 2.4, 2.6, 2.6, 2.6, 2.7, 2.8, 3.2, 3.7,
+             3.9, 4.1, 4.4, 4.5, 4.8, 5.2, 5.2, 5.3, 5.5, 5.5, 5.6, 5.6, 5.7, 5.7)
+mujeres <- c(3.5, 3.6, 3.8, 4.3, 4.3, 4.5, 4.5, 4.9, 5.1, 5.3, 5.3, 5.5, 5.5,
+             6.0, 6.0, 6.1, 6.3, 6.4, 6.4, 6.6, 6.7)
+
+n_hombres <- length(hombres)
+n_mujeres <- length(mujeres)
+
+# Comprobar la normalidad de las muestras
+print(shapiro.test(hombres))
+print(shapiro.test(mujeres))
+
+# Calcular y mostrar la diferencia observada entre las medias muestrales
+media_hombres <- mean(hombres)
+media_mujeres <- mean(mujeres)
+diferencia_obs <- media_hombres - media_mujeres
+
+cat("Media hombres:", round(media_hombres, 3), "\n")
+cat("Media mujeres:", round(media_mujeres, 3), "\n")
+cat("Diferencia observada:", round(diferencia_obs, 3), "\n\n")
+
+# Crear la distribución bootstrap
+B <- 9999
+set.seed(432)
+distribucion_b <- two.boot(hombres, mujeres, FUN = mean, R = B)
+
+# Examinar la distribución bootstrap
+datos <- data.frame(diferencias = distribucion_b[["t"]])
+g_hist <- gghistogram(datos, x = "diferencias", bins = 100,
+                      xlab = "Diferencia de medias", ylab = "Frecuencia")
+g_qq <- ggqqplot(datos, x = "diferencias")
+g <- ggarrange(g_hist, g_qq)
+print(g)
+
+media_b <- mean(datos[["diferencias"]])
+sd_b <- sd(datos[["diferencias"]])
+
+cat("Distribución bootstrap:\n")
+cat("\tMedia:", round(media_b, 3), "\n")
+cat("\tDesviación estándar:", round(sd_b, 3), "\n\n")
+
+# Construir y mostrar los intervalos de confianza
+alfa <- 0.05
+intervalo_bca <- boot.ci(distribucion_b, conf = 1 - alfa, type = "bca")
+print(intervalo_bca)
+
+# Desplazar la distribución bootstrap para reflejar la hipótesis nula
+valor_nulo <- -0.5
+desplazamiento <- media_b - valor_nulo
+distribucion_nula <- datos[["diferencias"]] - desplazamiento
+
+# Determinar y mostrar el valor p
+P <- (sum(distribucion_nula < diferencia_obs) + 1) / (B + 1)
+cat("\nValor p:", P, "\n")
+library(bootES)
+
+set.seed(432)
+
+# Ingresar datos originales.
+prueba_1 <- c(3.5, 2.7, 1.0, 1.8, 1.6, 4.3, 5.8, 6.4, 3.9, 4.3, 3.4,
+              3.5, 3.8, 5.3, 2.0, 1.3, 4.0, 5.3, 1.6, 3.6, 3.6)
+
+prueba_2 <- c(5.5, 5.1, 5.9, 4.8, 1.4, 3.2, 4.6, 3.0, 3.1, 3.0,
+              4.6, 4.5, 5.0, 4.3, 4.6, 3.3, 4.6, 5.9, 1.3, 3.6)
+
+# Calcular la diferencia entre ambas observaciones.
+diferencia <- prueba_2 - prueba_1
+
+# Calcular la media observada de las diferencias.
+valor_observado <- mean(diferencia)
+
+# Generar la distribución bootstrap y su intervalo de confianza.
+B <- 3999
+alfa <- 0.05
+
+distribucion_bES <- bootES(diferencia, R = B, ci.type = "bca",
+                           ci.conf = 1 - alfa, plot = FALSE)
+
+# Desplazar la distribución bootstrap para reflejar la hipótesis nula.
+valor_nulo <- 0.5
+desplazamiento <- mean(distribucion_bES[["t"]]) - valor_nulo
+distribucion_nula <- distribucion_bES[["t"]] - desplazamiento
+
+# Determinar el valor p.
+p <- (sum(abs(distribucion_nula) > abs(valor_observado)) + 1) / (B + 1)
+
+# Mostrar los resultados
+cat("Media de la diferencia observada:", round(valor_observado, 3), "\n\n")
+cat("Distribución bootstrap e intervalo de confianza:\n")
+print(distribucion_bES)
+cat("Valor p:", round(p, 3), "\n")
+library(ggpubr)
+
+# Definir las muestras iniciales
+a <- c(5.4, 4.7, 6.3, 2.9, 5.9, 5.1, 2.1, 6.2, 1.6, 6.7, 3.0, 3.3,
+       5.0, 4.1, 3.3, 3.4, 1.2, 3.8, 5.8, 4.2)
+b <- c(4.0, 4.1, 4.3, 4.3, 4.3, 4.2, 4.3, 4.3, 4.4, 4.1, 4.3, 4.0)
+
+# Establecer semilla y cantidad de repeticiones
+R <- 5999
+set.seed(432)
+
+# Función para obtener una permutación.
+# Argumentos:
+# - i: iterador (para llamadas posteriores).
+# - muestra_1, muestra_2: muestras.
+# Valor:
+# - lista con las muestras resultantes tras la permutación.
+obtiene_permutacion <- function(i, muestra_1, muestra_2) {
+  n_1 <- length(muestra_1)
+  combinada <- c(muestra_1, muestra_2)
+  n <- length(combinada)
+  permutacion <- sample(combinada, n, replace = FALSE)
+  nueva_1 <- permutacion[1:n_1]
+  nueva_2 <- permutacion[(n_1+1):n]
+  
+  return(list(nueva_1, nueva_2))
+}
+
+# Función para calcular la diferencia de un estadístico de interés entre las dos muestras.
+# Argumentos:
+# - muestras: lista con las muestras.
+# - FUN: nombre de la función que calcula el estadístico de interés.
+# Valor:
+# - diferencia de un estadístico para dos muestras.
+calcular_diferencia <- function(muestras, FUN) {
+  muestra_1 <- muestras[[1]]
+  muestra_2 <- muestras[[2]]
+  return(FUN(muestra_1) - FUN(muestra_2))
+}
+# Función para calcular el valor p.
+# Argumentos:
+# - distribucion: distribución nula del estadístico de interés.
+# - valor_observado: valor del estadístico de interés para las muestras originales.
+# - repeticiones: cantidad de permutaciones a realizar.
+# - alternative: tipo de hipótesis alternativa. "two.sided" para
+#   hipótesis bilateral, "greater" o "less" para hipótesis unilaterales.
+# Valor:
+# - el valor p calculado.
+calcular_valor_p <- function(distribucion, valor_observado,
+                              repeticiones, alternative) {
+  if(alternative == "two.sided") {
+    numerador <- sum(abs(distribucion) > abs(valor_observado)) + 1
+    denominador <- repeticiones + 1
+    valor_p <- numerador / denominador
+  } else if(alternative == "greater") {
+    numerador <- sum(distribucion > valor_observado) + 1
+    denominador <- repeticiones + 1
+    valor_p <- numerador / denominador
+  } else {
+    numerador <- sum(distribucion < valor_observado) + 1
+    denominador <- repeticiones + 1
+    valor_p <- numerador / denominador
+  }
+  
+  return(valor_p)
+}
+
+# Función para graficar una distribución.
+# Argumentos:
+# - distribucion: distribución nula del estadístico de interés.
+# - ...: otros argumentos a ser entregados a gghistogram y ggqqplot.
+graficar_distribucion <- function(distribucion, ...) {
+  observaciones <- data.frame(distribucion)
+  
+  histograma <- gghistogram(observaciones, x = "distribucion",
+                            xlab = "Estadístico de interés",
+                            ylab = "Frecuencia", bins = 30, ...)
+  qq <- ggqqplot(observaciones, x = "distribucion", ...)
+  
+  # Crear una única figura con todos los gráficos de dispersión.
+  figura <- ggarrange(histograma, qq, ncol = 2, nrow = 1)
+  print(figura)
+}
+# Función para hacer la prueba de permutaciones.
+# Argumentos:
+# - muestra_1, muestra_2: vectores numéricos con las muestras a comparar.
+# - repeticiones: cantidad de permutaciones a realizar.
+# - FUN: función del estadístico E para el que se calcula la diferencia.
+# - alternative: tipo de hipótesis alternativa. "two.sided" para
+#   hipótesis bilateral, "greater" o "less" para hipótesis unilaterales.
+# - plot: si es TRUE, construye el gráfico de la distribución generada.
+# - ...: otros argumentos a ser entregados a graficar_distribucion.
+contrastar_hipotesis_permutaciones <- function(muestra_1, muestra_2,
+                                                repeticiones, FUN,
+                                                alternative, plot, ...) {
+
+  cat("Prueba de permutaciones\n\n")
+  cat("Hipótesis alternativa:", alternative, "\n")
+  observado <- calcular_diferencia(list(muestra_1, muestra_2), FUN)
+  cat("Valor observado:", observado, "\n\n")
+
+  # Generar permutaciones
+  n_1 <- length(muestra_1)
+  permutaciones <- lapply(1:repeticiones, obtiene_permutacion, muestra_1, muestra_2)
+
+  # Generar la distribución
+  distribucion <- sapply(permutaciones, calcular_diferencia, FUN)
+
+  # Graficar la distribución
+  if(plot) {
+    graficar_distribucion(distribucion, ...)
+  }
+
+  # Calcular y mostrar el valor P
+  valor_p <- calcular_valor_p(distribucion, observado, repeticiones, alternative)
+  cat("Valor P:", valor_p, "\n\n")
+}
+
+# ----- Bloque principal -----
+
+# Hacer pruebas de permutaciones para la media y la varianza
+contrastar_hipotesis_permutaciones(a, b, repeticiones = R, FUN = mean,
+                                    alternative = "two.sided", plot = TRUE,
+                                    color = "blue", fill = "blue")
+
+contrastar_hipotesis_permutaciones(a, b, repeticiones = R, FUN = var,
+                                    alternative = "two.sided", plot = FALSE)
+library(ez)
+library(ggpubr)
+library(tidyr)
+
+# Crear la matriz de datos
+Algoritmos <- c("Quicksort", "Bubblesort", "Mergesort")
+Quicksort <- c(11.2, 22.6, 23.4, 23.3, 21.8, 40.1)
+Bubblesort <- c(15.7, 29.3, 30.7, 30.8, 29.8, 50.3)
+Mergesort <- c(12.0, 25.7, 25.7, 23.7, 25.5, 44.7)
+Instancia <- factor(1:6)
+
+datos_anchos <- data.frame(Instancia, Quicksort, Bubblesort, Mergesort)
+
+datos_largos <- datos_anchos |>
+  pivot_longer(all_of(Algoritmos),
+               names_to = "Algoritmo",
+               values_to = "Tiempo")
+
+datos_largos[["Algoritmo"]] <- factor(datos_largos[["Algoritmo"]],
+                                      levels = Algoritmos)
+
+# Verificar la condición de normalidad
+g <- ggqqplot(datos_largos, "Tiempo", facet.by = "Algoritmo",
+              color = "Algoritmo")
+print(g)
+
+# Establecer nivel de significación
+alfa <- 0.01
+
+# Obtener el valor observado, correspondiente al estadístico F entregado
+# por ANOVA para la muestra original.
+anova <- ezANOVA(datos_largos, dv = Tiempo, within = Algoritmo,
+                 wid = Instancia)
+valor_observado <- anova[["ANOVA"]][["F"]]
+
+# Función para obtener una permutación;
+# devuelve una matriz de datos con formato ancho.
+obtiene_permutacion <- function(i, df_ancho) {
+  df_ancho[, 2:4] <- t(apply(df_ancho[, 2:4], 1, sample))
+  return(df_ancho)
+}
+
+# Obtener permutaciones
+R <- 2999
+set.seed(432)
+# Obtener permutaciones
+permutaciones <- lapply(1:R, obtiene_permutacion, datos_anchos)
+
+# Función para obtener el estadístico F para una matriz de datos con formato ancho.
+obtiene_F <- function(df_ancho) {
+  df_largo <- df_ancho |>
+    pivot_longer(c("Quicksort", "Bubblesort", "Mergesort"),
+                 names_to = "Algoritmo",
+                 values_to = "Tiempo")
+  df_largo[["Algoritmo"]] <- factor(df_largo[["Algoritmo"]])
+  
+  anova <- ezANOVA(df_largo, dv = Tiempo, within = Algoritmo, wid = Instancia)
+  return(anova[["ANOVA"]][["F"]])
+}
+
+# Genera distribución de estadísticos F con las permutaciones
+distribucion <- sapply(permutaciones, obtiene_F)
+
+# Obtener y mostrar el valor p
+p <- (sum(distribucion > valor_observado) + 1) / (R + 1)
+cat("ANOVA de una vía para muestras pareadas con permutaciones:\n")
+cat("Valor p ómnibus:", p, "\n")
+
+# Análisis post-hoc
+
+# Función para calcular la media de las diferencias para dos columnas de una matriz de datos en formato ancho.
+obtiene_media_difs <- function(df_ancho, columna_1, columna_2) {
+  media <- mean(df_ancho[[columna_1]] - df_ancho[[columna_2]])
+  return(media)
+}
+
+# Obtiene las medias de las diferencias observadas
+dif_obs_Q_B <- obtiene_media_difs(datos_anchos, "Quicksort", "Bubblesort")
+dif_obs_Q_M <- obtiene_media_difs(datos_anchos, "Quicksort", "Mergesort")
+dif_obs_B_M <- obtiene_media_difs(datos_anchos, "Bubblesort", "Mergesort")
+
+# Obtiene las distribuciones de las medias de las diferencias permutadas
+dist_medias_difs_Q_B <- sapply(permutaciones, obtiene_media_difs,
+                               "Quicksort", "Bubblesort")
+dist_medias_difs_Q_M <- sapply(permutaciones, obtiene_media_difs,
+                               "Quicksort", "Mergesort")
+dist_medias_difs_B_M <- sapply(permutaciones, obtiene_media_difs,
+                               "Bubblesort", "Mergesort")
+
+# Obtener valores P
+den <- R + 1
+num <- sum(abs(dist_medias_difs_Q_B) > abs(dif_obs_Q_B)) + 1
+p_Q_B <- num / den
+
+num <- sum(abs(dist_medias_difs_Q_M) > abs(dif_obs_Q_M)) + 1
+p_Q_M <- num / den
+
+num <- sum(abs(dist_medias_difs_B_M) > abs(dif_obs_B_M)) + 1
+p_B_M <- num / den
+
+valores_p <- c(p_Q_B, p_Q_M, p_B_M)
+
+# Ajustar y mostrar valores P
+valores_p_adj <- p.adjust(valores_p, method = "BH")
+
+cat("\n\nAnálisis post-hoc (permutaciones) para la diferencia de las medias\n")
+cat("Valores P ajustados:\n")
+cat(sprintf(" Quicksort - Bubblesort: %.3f\n", valores_p_adj[1]))
+cat(sprintf(" Quicksort - Mergesort: %.3f\n", valores_p_adj[2]))
+cat(sprintf(" Bubblesort - Mergesort: %.3f\n", valores_p_adj[3]))
+
+cat("\nDiferencias observadas:\n")
+cat(sprintf(" Quicksort - Bubblesort: %6.3f\n", dif_obs_Q_B))
+cat(sprintf(" Quicksort - Mergesort: %6.3f\n", dif_obs_Q_M))
+cat(sprintf(" Bubblesort - Mergesort: %6.3f\n", dif_obs_B_M))
+
+```
+
+
+

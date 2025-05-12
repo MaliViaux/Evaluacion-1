@@ -1,0 +1,306 @@
+---
+title: "tareaCasen"
+author: "Integrantes:
+Jazmin Melo
+Andre Cosio
+Benjamín Valenzuela"
+date: "2025-03-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Esta tarea consiste en evaluar los datos de la encuesta casen sobre las mujeres que viven en la región metropolitana. Dado que existe un ranking de riqueza para las comunas de la región metropolitana, se evalua la existencia de la relación entre ranking de riqueza y el ingreso de las mujeres según su comuna.
+
+Para esto filtraremos los datos, obteniendo las mujeres que viven en la región metropolitana, y se le aplicarán diferentes filtros, por ejemplo para contabilizar los ingresos de las mujeres por cada comuna y poder luego graficarlos para observar su comportamiento.
+
+
+```{r}
+suppressWarnings(suppressMessages({
+  if (!require("ggpubr")) install.packages("ggpubr")
+  if (!require("dplyr")) install.packages("dplyr")
+  if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
+  if (!require("gridExtra")) install.packages("gridExtra")
+  if (!require("tidyr")) install.packages("tidyr")
+  library(tidyr)
+  library(dplyr)
+  library(ggplot2)
+  library(gridExtra)
+  library(ggpubr)
+}))
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+# OBTENCIÓN Y CARGAD DE TABLA DE DATOS:
+# Importar desde un archivo de valores separados por coma
+# en formato español (figura 1.2 c).
+datos2 <- read.csv2(file.choose())
+#---------------------------------------------------------------------------------------------------------------------------------------
+# OBSERVACIONES PARA LAS VARAIBLES A ANALIZAR:
+# 1) ing. comuna -> valor int (posición en el ranking)
+# VARIABLE CATEGORICA ORDINAL POR SER UN RANKING O NIVEL
+
+# 2) ytot -> valor num (asumido como el ingredo de la persona)
+# VARIABLE NÚMERICA DISCRETA (NO HAY VALORES DECIMALES, SON ENTEROS)
+
+# FILTRAR MUJERES (M1)
+m1 <- datos2 |> filter(sexo == "Mujer")
+
+h1 <- datos2 |> filter(sexo == "Hombre")
+#----------------------------------------------------------------------
+# FILTRAR PARA QUE SEAN DE LA RM (M2)
+m2 <- m1 |> filter(region == "Región Metropolitana de Santiago")
+
+h2 <- h1 |> filter(region == "Región Metropolitana de Santiago")
+
+# filtrar valores utopicos usaremos buscando el cuartil superior para solo tener los ingresos menores a este cuartil
+cuartil_superior <- quantile(m2$ytot, 0.75, na.rm = TRUE)
+
+# se filtra el conjunto de ingresos de mujeres
+m2 <- m2 %>% filter(ytot <= cuartil_superior)
+
+#----------------------------------------------------------------------
+# Separar variables numéricas
+variables_numericas <- m2 %>% select(where(is.numeric))
+
+# Separar variables categóricas
+variables_categoricas <- m2 %>% select(where(is.character))
+
+#----------------------------------------------------------------------
+
+# Resumen descriptivo para variables numéricas
+resumen_numericas <- variables_numericas %>%
+  summarise(across(everything(), 
+                   list(media = mean, mediana = median, sd = sd, min = min, max = max), 
+                   na.rm = TRUE))
+
+
+print(resumen_numericas)
+#----------------------------------------------------------------------
+
+resumen_categoricas <- lapply(variables_categoricas, table)
+
+print(resumen_categoricas)
+
+modelo_lineal <- lm(ytot ~ ing.comuna, data = m2)
+pendiente <- coef(modelo_lineal)[2]
+
+
+```
+Se obtuvo un Resumen descriptivo y de frecuencias de variables categóricas y la pendiente del modelo lineal
+
+La pendiente de la recta de regresión es
+
+```{r}
+
+round(pendiente, 2)
+```
+
+
+Se procede con gráficos pertinentes poder comprender e ilustrar el comportamiento y posible relación de el ingreso de las mujeres de la región metropolitana dado un ranking de las comunas donde viven sobre la riqueza de cada comuna.
+
+```{r}
+
+mujeres_por_comuna <- m2 %>%
+  group_by(ing.comuna, comuna) %>%
+  summarise(cantidad = n(), .groups = "drop")
+
+print(mujeres_por_comuna)
+
+ggplot(mujeres_por_comuna, aes(x = reorder(comuna, ing.comuna), y = cantidad)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  ggtitle("Cantidad de Mujeres que participaron en CASEN por Comuna") +
+  xlab("Comuna (ordenada por ranking)") +
+  ylab("Cantidad de Mujeres") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#----------------------------------------------------------------------
+ingreso_por_comuna <- m2 %>%
+  group_by(ing.comuna, comuna) %>%
+  summarise(total_ingreso = sum(ytot, na.rm = TRUE)) %>%
+  arrange(ing.comuna)
+
+ggplot(ingreso_por_comuna, aes(x = reorder(comuna, ing.comuna), y = total_ingreso)) +
+  geom_bar(stat = "identity", fill = "darkcyan") +
+  ggtitle("Total de Ingresos de Mujeres por Comuna (Ordenado por Riqueza)") +
+  xlab("Comuna") +
+  ylab("Total de Ingresos (ytot)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#----------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------------------
+ggplot(m2, aes(x = ing.comuna, y = ytot)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  ggtitle("Relación entre Ingreso de Mujeres y Riqueza de la Comuna") +
+  xlab("Riqueza de la Comuna (Ranking)") +
+  ylab("Ingreso Total de Mujeres (ytot)") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(0, 600000))
+
+#----------------------------------------------------------------------
+ggplot(m2, aes(x = reorder(factor(ing.comuna), ing.comuna), y = ytot)) +
+  geom_boxplot(fill = "cyan", outlier.shape = 16) +
+  ggtitle("Distribución del Ingreso de Mujeres por Nivel de Riqueza de la Comuna") +
+  xlab("Ranking de Riqueza de la Comuna") +
+  ylab("Ingreso Total de Mujeres (ytot)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+ggplot(m2, aes(x = reorder(factor(ing.comuna), ing.comuna), y = ytot)) +
+  geom_violin(fill = "purple", alpha = 0.5) +
+  ggtitle("Distribución del Ingreso de Mujeres por Riqueza de la Comuna") +
+  xlab("Ranking de Riqueza de la Comuna") +
+  ylab("Ingreso Total de Mujeres (ytot)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+```
+
+```{r}
+
+set.seed(123)  # Para reproducibilidad
+
+# Parámetros
+n_productores <- 100
+n_muestras <- 10
+n_gallinas <- 25
+
+# Función para simular el promedio de huevos de cada muestra
+simular_muestras <- function(){
+  # Usamos una distribución Gamma para asimetría positiva
+  huevos <- rgamma(n_gallinas, shape = 9, scale = 3)  # Ajustado para tener media aprox 30
+  mean(huevos)
+}
+
+# Simulación completa
+promedios <- matrix(nrow = n_productores, ncol = n_muestras)
+
+for (i in 1:n_productores){
+  promedios[i, ] <- replicate(n_muestras, simular_muestras())
+}
+
+# Convertimos a un vector para graficar todos los promedios juntos
+promedios_vector <- as.vector(promedios)
+
+# Histograma de los promedios
+hist(promedios_vector, breaks = 30, col = "skyblue",
+     main = "Distribución de promedios de huevos por productor (Pregunta 1 y 2)",
+     xlab = "Promedio de huevos por muestra")
+
+set.seed(456)  # Otra semilla
+
+# Parámetros
+n_productores_q3 <- 40
+n_muestras_q3 <- 20
+n_gallinas_q3 <- 16
+
+# Simulación
+promedios_q3 <- matrix(nrow = n_productores_q3, ncol = n_muestras_q3)
+
+for (i in 1:n_productores_q3){
+  promedios_q3[i, ] <- replicate(n_muestras_q3, {
+    huevos <- rgamma(n_gallinas_q3, shape = 9, scale = 3)
+    mean(huevos)
+  })
+}
+
+# Vector para graficar
+promedios_vector_q3 <- as.vector(promedios_q3)
+
+# Histograma
+hist(promedios_vector_q3, breaks = 30, col = "orange",
+     main = "Distribución de promedios de huevos por productor (Pregunta 3)",
+     xlab = "Promedio de huevos por muestra")
+
+
+par(mfrow = c(1,2))  # Dos gráficos lado a lado
+
+# Pregunta 1 y 2
+hist(promedios_vector, breaks = 30, col = "skyblue",
+     main = "100 productores\n(10 muestras, 25 gallinas)",
+     xlab = "Promedio de huevos")
+
+# Pregunta 3
+hist(promedios_vector_q3, breaks = 30, col = "orange",
+     main = "40 productores\n(20 muestras, 16 gallinas)",
+     xlab = "Promedio de huevos")
+
+par(mfrow = c(1,1))  # Reset
+
+# Parámetros
+n <- 100
+p <- 0.45
+
+# Distribución binomial
+set.seed(123)
+condiciones <- rbinom(1000, size = n, prob = p) / n
+
+# Histograma
+hist(condiciones, breaks = 20, col = "lightgreen",
+     main = "Proporción de personas con condiciones crónicas (n=100)",
+     xlab = "Proporción en la muestra")
+# Añadir curva normal
+curve(dnorm(x, mean = p, sd = sqrt(p * (1 - p) / n)), 
+      col = "red", lwd = 2, add = TRUE)
+# Intervalo de confianza
+li <- 128
+ls <- 147
+n_pacientes <- 64
+
+# Media y margen de error
+media <- (li + ls) / 2
+error_margen <- (ls - li) / 2
+
+# Calculamos el error estándar (usando z = 1.96 para 95%)
+error_estandar <- error_margen / 1.96
+
+# Desviación estándar estimada
+sd_estimada <- error_estandar * sqrt(n_pacientes)
+
+cat("Media estimada:", media, "minutos\n")
+cat("Desviación estándar estimada:", round(sd_estimada, 2), "minutos\n")
+# Crear una secuencia de tiempos
+tiempos <- seq(100, 180, by = 1)
+
+# Densidad normal
+densidad <- dnorm(tiempos, mean = media, sd = sd_estimada)
+
+# Plot
+plot(tiempos, densidad, type = "l", lwd = 2, col = "blue",
+     main = "Distribución estimada del tiempo de espera en Urgencias",
+     xlab = "Tiempo de espera (minutos)",
+     ylab = "Densidad")
+
+# Añadimos líneas del intervalo de confianza
+abline(v = c(li, ls), col = "red", lwd = 2, lty = 2)
+text(x = li, y = max(densidad) * 0.9, labels = "128 min", pos = 4, col = "red")
+text(x = ls, y = max(densidad) * 0.9, labels = "147 min", pos = 2, col = "red")
+
+# Datos
+li <- 128
+ls <- 147
+
+# Margen de Error
+margen_error <- (ls - li) / 2
+cat("Margen de Error:", margen_error, "minutos\n")
+
+
+
+```
+
+
+RESPUESTA A LA PREGUNTA:
+
+Gracias a las gráficas obtenidas, podemos concluir que las variables de el ingreso de las
+mujeres de la RM con el riqueza del municipio donde habita son dependientes entre sí ya
+que la pendiente es 1179.98 lo cual se muestra que tienen ambas variables una fuerte
+relacion positiva, es decir que si una aumenta la otra tambien aumenta viendose claramente
+en el grafico de dispersion por la linea roja que corresponde a la pendiente que esta
+inclinada hacia arriba.
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```

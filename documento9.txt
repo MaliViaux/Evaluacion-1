@@ -1,0 +1,2383 @@
+©0080 OCOSe@
+
+CAPITULO 12, ALTERNATIVAS MAS RECIENTES PARA
+ANALIZAR DATOS PROBLEMATICOS
+
+Como ya sabemos, muchos procedimientos estadisticos requieren que los datos cumplan con ciertas propieda-
+des o condiciones, lo que no siempre ocurre, En el capitulos anteriores hemos visto que, ante este escenario,
+podemos intentar analizar datos transformados (seccién 11.1) o usar como alternativa algin métodos no
+paramétrico (capitulo 8 y secciones 11.2 y 11.3). Pero estas no son las tmicas opciones como veremos en
+este capitulo, donde abordaremos otras estrategias, que podemos usar cuando necesitamos analizar datos
+problematicos, que son mas recientes y que requieren cierto poder de computo.
+
+12.1 METODOS ROBUSTOS
+
+Pensemos come ejemplo en la prueba t de Student (capitulo 5), que se usa para inferir acerea de la media
+de una poblacién. Sin embargo, como mencionamos en el capitulo 2, esta medida de tendencia central tiene
+el problema de ser sensible a la presencia de valores atipicos, a distribuciones asimétricas o a muestras muy
+pequefias. En términos generales, el incumplimiento de las condiciones del supuesto de normalidad puede
+causar diversos problemas:
+
+» Resultados sesgados.
+« Intervalos de confianza sub o sobreestimados.
+« Reduccién del poder estadistico de la prueba.
+
+En el capitulo 2 mencionamos la existencia de estimadores robustos, poco sensibles a asimetrias muestrales o
+valores atipicos. No obstante, el paradigma estadistico tradicional no suele considerarlos. Esta secciém, basada
+en las ideas expuestas por Mair y Wilcox (2020), aborda pruebas alternativas para muchas de las pruebas
+estudiadas hasta ahora, disponibles en el paquete WRS2 de R, basadas en estimadores robustos.
+
+12.1.1 Alternativas robustas a la media
+
+En el capitulo 2 conocimos distintas medidas de tendencia central. Entre ellas vimos que la mediana,
+correspondiente al valor central (o el promedio de los dos valores centrales) de la muestra ordenada, es una
+alternativa robusta ala media. No obstante, existen otras opciones que nos pueden ser utiles.
+
+La media truncada es bastante similar a la media aritmética que va conocemos, con la diferencia de que
+calcula descartando un determinado porcentaje (+) de los valores en ambos extremos del conjunto de dat
+Tomemos como ejemplo una muestra X con 10 elementos, los cuales han sido ordenados por simplicidad:
+
+X = (5,20, 47,98, 40,49, 43, 45,87,91}
+
+Si caleulamos la media para la muestra anterior, tenemos que es F = 44,9, No obstante, si observamos la
+muestra del ejemplo con detencién, podemos darnos cuenta de que los valores extremos parecen ser atipicos
+¥, en consecuencia, pueden tener una gran influencia en el valor resultante para la media. Asi, podria ser mis
+adecuade calcular la media truncada con + = 0,2, es decir, podando el 20% de los valores més pequetios y el
+20% de los valores mas grandes, con lo que obtendremos:
+
+ot STA BSH MOH AS + AB + AB
+
+6 A
+
+En R, podemos calcular la media truncada mediante la ya conocida funcién mean() del paquete base ',
+
+agregande el argumente adicional trim con la proporcion + de los datos extremos a des ar, esto es
+mean(x, trim = 0.2) para el ejemplo. Notemos que si + = 0,5 (trim = 0.5), se obtiene la mediana del
+econjunto de datos,
+
+Un problema de la media truncada es que, al usarla, podriamos estar descartando muchos datos, lo que puede
+‘ausar problemas cuando la muestra es pequeia. Otra opcién puede ser, en lugar de descartar los valores
+extremes en cada cola, reemplazarlos por los valores extremos que no serian descartados al usar la media
+truncada y luego calcular la media com la muestra modificada, A esta medida se le conoce como media
+Winsorizada. Si retomamos nuestro ejemplo para la media truncada, los valores extremos tras la operacién
+de truncado son 37 v 46. Asi, reemplazamos los valores truneades en la muestra original por estos nuevos
+extremos, con lo que nuestra muestra Winsorizada es:
+
+X™ = {47, 37, 37, 38, 40, 43, 43, 45, 45, 45},
+v la media Winsorizacda entonces seria:
+
+37+ 37+ 47+ 38 40+ 449+ 45245445
+
+41
+10
+
+En R, podemos hacer este célculoa mediante la funciém winmean(x, tr) del paquete WRS2, donde:
+
+» x: vector con los datos originales,
+« tr: proporcién de los dates a Winserizar en cada extremo.
+
+Asi, la llamada para el ejemplo seria winmean(x, tr = 0.2).
+
+12.1.2 Prueba de Yuen para dos muestras independientes
+
+La prueba de Yuen es una buena alternativa a la prueba t de Student para muestras independientes que
+trabaja con las medias truncadas y Winsorizadas en vez de las medias aritméticas originales. De este modo,
+son una buena alternativa para comparar dos mecias indepencdientes cuando los datos no cumplen la condicién
+de normalicdad, presentan datos atfpicos, las variangas son muy diferentes o los tamanos de las muestras son
+muy dispares,
+
+La prueba de Yuen para dos muestras independientes puede aplicarse sise cumplen las siguientes condiciones:
+
+Las observaciones en una muestra son independientes, esto significa que la eleccién de una observaciém
+no influye en la seleeciém de otra para esa muestra.
+
+Las muestras son indepencientes, es decir que las observaciones de una muestra no estén relacionadas
+con ninguna de las observaciones de la otra.
+
+La(s) variable(s) estudiada(s) tiene(m) al menos escala de intervalos iguales.
+
+Sin embargo, hay otras condiciones que si bien no son obligatorias para aplicar el procedimiento, si influyen
+en la calidad de las interpretaciones que podemos obtener:
+
+Las poblaciones de origen no son extremadamente diferentes (por ejemplo, una es muy seazada a la
+derecha y la otra a la izquierda), por lo que comparar sus medias recortadas tiene sentido.
+
+El impacto de los valores extremos no es de interés de la investigacién, pues la prucba de Yuen esen-
+cialmente ignora la informacién que estos valores entregan,
+
+El nivel de poda no esta cerca del wi de la meciana, siendo + = 0,2 un valor frecuente.
+
+Las muestras no son demasiado reducidas, cuando la poda puede tener efectos perjudiciales. Como
+es usual, no existe un nimero fijo, pero algunos autores mencionan 5, 6 o 10 observaciones por cada
+muestra luego de la poda.
+
+La prueba entonces se basa en la estimacién de la diferencia de las medias truncadas: d' = FT, — F,,
+donde 7, y % son las medias truncadas de cada una de las muestras. El error estandar para este estadistico
+
+{Que Se carga automuiticamente al iniciar una sesidn en Re
+esta dado por la ecuacién 12.1;
+
+SEg = \/8, + 8, = | cae (ma = 1) By (12.1)
+
+nj (ni — 1) ng, (nj, — 1)
+
+siendo n; el tamaio de la muestra # original, n{ el tamanho de la muestra i truncada, y sy» la desviacién
+estandar de la muestra i Winsorizada,
+
+Asi, el estadistico de prueba esta dado por la ecuacién 12.2:
+¢ _ %-%
+
+SE» a [2 + ay
+
+El estadistico T, sigue una distribucién t cuyos grados de libertad se calculan mediante la ecuacién 12.3:
+
+T, = (12.2)
+
+(8%y + 844)? Fe
+vw 7 a (12,3)
+
+Luego, es posible construir un intervalo de 100 - (1 — a) % confianza como muestra la ecuacién 12.4:
+
+—%) +0 (8, +. (12.4)
+
+donde t* corresponde al cuantil critico 1 — a/2 de la distribucion t con 4, grados de libertad.
+
+Como sugieren estas ecuaciones, las hipétesis contrastadas por la prueba de Yuen para dos muestras inde-
+pendientes son que las medias truncadas de las poblaciones de origen son iguales:
+
+Ho: 1h = Hy
+
+Ha: ph Foy
+En R, podemos aplicar la prueba de Yuen para muestras independientes mediante una Hamada a la funcién
+yuen(formula, data, tr) del paquete WRS2, donde:
+
+= formula: tiene la forma <variable_dependiente> ~ <variable_independiente>. Note que la variable
+
+independiente debe tener dos niveles, a fin de determinar a qué muestra pertenece cada observacién de
+la variable dependiente.
+= data: matriz de datos.
+
+® tr: pardmetro + de la poda.
+
+Veamos un ejemplo. El script 12.1 muestra el cédigo que define dos muestras independientes del tiempo
+promedio de ejecuci6n (en milisegundos) de dos algoritmos de complejidad computacional similar para resolver
+aproximadamente problemas de la un conjunto de 70 instancias del problema de ruteamiento de vehiculos
+eléctricos con estaciones de carga intermedia, todas de igual tamano y complejidad, que fueron construidas
+aleatoriamente. Estas instancias fueron asignadas al azar a cada uno de los algoritmos, resultando que n, = 40
+de ellas fueran resueltas por el algoritmo A y las restantes n, = 30 por el algoritmo B.
+
+Las lineas 19-22 del script 12.1 construyen graficos Q-Q para comprobar el supuesto de normalidad requerido
+por la prueba t de Student para dos muestras independientes, obteniéndose como resultado la figura 12.1,
+donde podemos observar que las muestras obtenidas presentan desviaciones importantes de una distribucién
+normal, especialmente para el caso del algoritmo A.
+
+Por esta raz6n, no podemos utilizar una prueba t de Student para inferir sobre la diferencia del rendimiento
+medio de los algoritmos A y B para determinar si ticnen igual desempetio o alguno de ellos es mais cficiente.
+
+Como alternativa para analizar estos datos usaremos la prueba de Yuen. Por la descripcién del experimento,
+podemos confiar en que las condiciones de independencia al interior y entre las muestras se cumple, al igual que
+una escala adecuada. Por otro lado, como ambos algoritmos tienen complejidades computacionales parecidas,.
+podrfamos esperar que las distribuciones de sus tiempos de ejecucién no sean muy diferentes. Ademas, las
+muestras son lo suficientemente grandes como para poder aplicar una poda razonable. Si usamos 7 = 0.2, las
+muestras truncadas tendrian, respectivamente, ni} = 24 y ni, = 24 observaciones.
+354
+
+Tiempo de ejecucidn [ms]
+
+2 -1 0 2 2 -2 -2 OO 2 2
+Cuantil tedrico
+
+Figura 12.1: grafico Q-(Q de las muestras originales.
+
+Script 12.1: datos del tiempo de ejecucién registrado por dos algoritmos en diferentes instancias de igual
+tamano y complejidad.
+
+library (ggpubr)
+a library (WRS2)
+
+# Construir la matriz de datos
+of *- c(25.1, 25.2, 25.3, 25.3, 25.4, 25.4, 25.5, 25.5, 25.6, 25.8, 25.8,
+25.9, 25.9, 26.0, 26.0, 26.2, 26.2, 26.2, 26.3, 26.4, 26.5, 26.5,
+26.6, 26.7, 26.7, 26.9, 26.9, 27.0, 27.1, 27.3, 27.8, 28.4, 28.5,
+29.0, 29.8, 30,2, 31.8, 31.9, 33.3, 33.7)
+
+ob <= c(24.1, 24.4, 24.4, 24.5, 24.7, 24.8, 24.8, 25.1, 25.2, 25.2, 25.2,
+26.3, 26.4, 25.7, 25.7, 26.3, 26.3, 26.4, 26.5, 27.2, 27.7, 28.3,
+28.4, 28.4, 28.6, 28.7, 29.6, 29.9, 30.1, 30.5)
+
+: Tiempo <- cla, b)
+Algoritmo <- c(rep({"A", length(a)), rep("B", length(b)))
+datos <- data.frame(Tiempo, Algoritmo)
+
+- # Comprobar normalidad
+qq <- geqqplot(dates, x = "Tiempo", facet.by = "Algoritmo",
+1 palette = c("steelblue", "steelbluei"), color = "Algoritmo",
+xlab = "Cuantil tedrico", ylab = "Tiempo de ejecucién [ms]")
+qq <- qq + theme(legend.position = "none")
+/ print (qq)
+
+$
+
+3
+
+.
+
+2
+
+=
+
+Tiempo de ejecucidn truncado [rms]
+
+he
+Ls)
+
+Cuantil tedrico
+Script 12.2: (continuacién del script 12.1) poda de los datos del ejemplo.
+
+# Aplicar una poda del 20% a las muestras
+gamma <- 0.2
+h_a <- length(a)
+n_b <- length(b)
+» poda_a <- floor(n_a * gamma)
+» poda_b <- floor(n_b * gamma)
+
+a_trunc <- alpoda_a:(n_a - poda_a)]
+b_trunc <- b[poda_b:(n_b - poda_b)]
+
+> Tiempo_t <- cla_trunc, b_trunc)
+Algoritmo_t <- c(rep("A", length(Ca_trunc)), rep("B", length (b_trunc)))
+datos_t <- data.frame(Tiempo_t, Algoritmo_t)
+
+qqit <- geqqplet(dates_t, x = "Tiempo_t", facet. by = "Algoritme_t",
+1 palette = c("steelblue", “steelbluei"), color = "Algoritmo_t",
+xlab = "Cuantil tedérice",
+a ylab = “Tiempo de ejecucién truncado [ma]")
+qq_t <- qq_t + theme(legend.position = "“none")
+print (qq_t)
+
+Por supuesto, la aplicaciém del procedimiento es més simple utilizando la funcién yaen(), como muestra la
+linea 48 del script 12.3, obteniéndose como resultado (figura 12.3) una diferencia entre las medias truncadas
+de 0,246, con intervalo de 95% de confianaa {—0,859; 1,351) y tamaiio del efecto de 0,090, La prueba no
+resulta siguificativa (7,(29,05) = 0,455; p = 0,055) al nivel de significacién a = 0,05, por lo que concluimos
+con 95% de confianza que no es posible descartar que ambos algoritmos tienen, en promedio, igual tiempo
+de ejecucién.
+
+Prueba de Yuen para dos muestras independientes
+
+Call:
+yuen(formula = Tiempo ~ Algoritmo, data = datos, tr = gamma)
+
+Test statistic: 0.455 (df = 29.05), p-value = 0.65252
+
+Trimmed mean difference: 0.24583
+95 percent confidence interval:
+-0.8592 1.9509
+
+Explanatory measure of effect size: 0.09
+
+Figura 12.3: resultado de la prueba de Yuen para el ejemplo.
+
+El paquete WAS2 incluye también la funcién pb2gen(formula, data, est, nboot), que usa bootstrapping para
+aplicar la prueba de Yuen usando otras medidas robustas de tendencia central, donde:
+
+= formula: tiene la misma forma descrita para la prueba de Yuen.
+
+« data: matriz de datos.
+
+« est: medida a emplear. Puede tomar las opciones “mean" para la media y "median" para la mediana,
+entre otras opciones que escapan a los alcances de este curso.
+
+* nboot: cantidad de repeticiones bootstrap.
+
+Como estudiaremos més adelante, en cada iteracién bootstrap se estima la diferencia de las medias truncadas
+de dos remuestras de las muestras originales. Esto permite obtener una especie de “promedio” del estacistico,
+que es més confiable que la tinica estimacién que se obtiene de las muestras originales.
+
+El script 12.3 muestra cémo usar la funcién pb2gen() en el ejemplo, usando como estimadores la media (linea
+
+58) y la mediana (linea 62), obteniéndose los resultados de la figura 12.4. Podemos ver que, en ambos casos,
+las prucbas tampoco resultan significativas (JT, = 0.01; p— value > 0,213, con 999 iteraciones bootstrap).
+Script 12.3: (continuacién del script 12.2) prueba de Yuen para dos muestras independientes asintética v
+usando bootetrapping.
+
+: # Aplicar y mostrar la prueba de Yuen asintética
+prueba <- yuen(Tiempo ~ Algoritmo, data = datos, tr = gamma)
+«3 Gat("\nPrueba de Yuen para dos muestras independientes\n")
+
+» cat" ----------------------------------------------- An}
+
+) print (prueba)
+
+# Establecer cantidad de repeticiones con bootstrapping
+B <- 999
+
+>|# Aplicar la prueba de Yuen con bootetrapping y la media
+set. seed (135)
+prueba_media <- pb2gen(Tiempo ~ Algoritmo, data=datos, est="mean", nboot=B)
+
+| # Aplicar la prueba de Yuen con bootstrapping y la mediana
+| set. seed (195)
+. prueba_mediana <- pb2gen(Tiempo
+
+Algoritmo, data=datos, est="median", nboot=B)
+
+# Mostrar los resultados
+i cat("\nPrueba de Yuen - implemetacién con bootatrapping\n")
+cot (* saeseseen seeensesesesenneseseneanenenennessncnees (5 *)
+
+cat("\nResultade al usar bootstrapping y la media como estimador\n")
+cat" --------------------------------------------------------- \n")
+| print (prueba_media)
+
+mo) cat("\nResultadoe al usar bootstrapping y la mediana como estimador\n")
+
+7i| cat" --22ccesececesesesesscsecesesecssesscesesssssssscsesscesecs An")
+2 print (prueba_mediana)
+
+Prueba de Yuen - implemetacién con bootstrapping
+
+Resultado al usar la media como estimador
+
+Call:
+pb2gen(formula = Tiempo ~ Algoritmo, data = datos, ast = "mean",
+nboot = bootstrap)
+
+Test statistic: 0.61, p-value = 0.21321
+95% confidence interval:
+-0.2008 1.5617
+
+Resultado al usar la mediana como estimador
+
+Call:
+pb2gen(formula = Tiempo ~ Algoritmo, data = datos, est = "median",
+nboot = bootstrap)
+
+Test statistic: 0.45, p-value = 0.47147
+98%, confidence interval:
+=0.95 1.35
+
+Figura 12.4: resultado de la prueba de Yuen con bootstrapping para el ejemplo, usande como estimadores la
+media y la mediana.
+La prueba de Yuen, al igual que la prueba t de Student, fue adaptada para trabajar con dos muestras pareadas
+y es una alternativa cuando los datos no cumplen la condicién de normalidad o existen valores atipicos. Las
+suposiciones de esta prueba son:
+
+s Los pares de observaciones son independientes, es decir que la cleccién de un par no influye en la
+seleccién de otro,
+« La variable medida tiene al menos escala de intervalos iguales.
+
+Como cuando se trabaja con muestras independientes, hay otras condiciones que afectan la calidad de esta
+version de la prueba:
+
+« Las diferencias siguen una distribucién relativamente simétrica,
+
+« La poda que se aplica elimina valores atipicos extremos.
+
+« El nivel de poda no es cercano al nivel de la mediana.
+
+« Las muestras no son demasiado reducidas. Algunos autores mencionan que se deberian tener al menos
+
+10 0 15 pares de observaciones.
+Para el caso de dos muestras apareadas, como ha sido usual, debemos considerar el conjunto de las diferencias
+entre pares de observaciones:
+D= {d; =2y'— ry},
+
+siendo (.r;, 2;) el ?-ésimo par de observaciones en la muestra. Luego podermos aplicar la poda a este conjunto
+y calcular la media truncada de las diferencias: Dd.
+
+El error esténdar de esta media truncada esta dada por la ecuacién 12.5:
+
+_ (n — 1) Sh .
+SEy = Vou (12.5)
+
+donde n es el nimero de pares en la muestra original D, n‘ es la cantidad de pares disponibles luego de la
+poda, y Sp es la desviacién estAndar del conjunto de las diferencias Winsorizado.
+
+Asf, el estadistico de prueba para datos pareados seria como muestra la ecuacién 12.6:
+
+Tyx — (12.6)
+
+(n-1)s.
+n(n’ — 1)
+
+que sigue una distribucién t con mn‘ — 1 grados de libertad, lo que permite obtener valores p e intervalos de
+confianza.
+
+Nuevamente estas ecuaciones sugieren que esta extension de la prueba de Yuen contrasta hipdétesis bilaterales,
+que en este caso corresponde a que la media truncada de las diferencias apareadas es cero:
+
+Ho: py = 0
+Ha: pt, #0
+
+En R, podemos aplicar la prueba de Yuen para muestras apareadas mediante una llamada a la funcién
+yuend(x, y, tr) del paquete wRs2, donde:
+
+® x: vector numérico con la primera muestra.
+= y: vector numérico con la segunda muestra.
+
+* tr: pardmetro ¥ de la poda.
+
+Como es de esperar, la funcién falla si los largos de los vectores x e y no coinciden.
+
+Consideremos un ejemplo. Supongamos ahora que queremos comparar el rendimiento de los algoritmos A
+y B para el problema de ruteamiento de vehiculos eléctricos con estaciones de carga intermedia, descritos
+en la secci6n anterior, para lo cual esta vez hemos seleccionado aleatoriamente 25 instancias del problema y
+registrado el tiempo de ejecucién en milisegumdos que cada uno tarda en resolverlas.
+
+El script 12.5 muestra los tiempos de ejecucién observados para cada algoritmo (Iineas 6-12). El resto del
+seript construye graficos Q-Q para el conjunto de las diferencias entre los pares de observaciones y para este
+junto podacdo (obtenido en las lineas 17-21) aplicando un recorte + = 0.2. Los grificos resultantes se
+muestran en la figura 12.5.
+
+En ella podenios ver que el conjunte de diferencias observadas ja la izquierda) exhibe desviaciones importantes
+de normalidad, por lo que no seria prudente asumir que esta proviene de una distribucién normal. En cambio,
+él conjunto podado de estas ohservaciones (a la derecha) muestra in comportamiento més esperadoe para una
+muestra que provienc de una poblacién normal, Asi, es conveniente que usemos la prucba de Yuen para cos
+muestras pareadas en este caso, como alternativa a la prueba t pareada.
+
+Original Podados
+
+he
+i=]
+L
+
+ms
+o
+ni
+
+=)
+L
+
+Diferencias en tiempos
+de ejecucian [ms]
+
+-104
+
+Cuantil tedrica
+Figura 12.5: gréficos Q-Q de las diferencias originales v truncadas,
+
+Seript 12.4: datos del tiempo de ejecucién registrade por los algoritmos en las mismas instancias,
+
+library (ggpubr)
+library (WRS2)
+
+# Construir las estructuras con los datos observados
+
+a <- cf32.3, 32.0, 32.0, 36.0, 34.2, 32.7, 32.5, 32.0, 32.1, 33.4,
+32.3, 37.2, 32.1, 32.0, 33.9, 34.1, 36.6, 34.5, 42.7, 33.1,
+32.7, 32.1, 36.7, 32.2, 368.0)
+
+b <- c(35.3, 20.1, 18.6, 46.3, 42.1, 39.3, 37.0, 28.0, 30.2, 40.4,
+35.6, 50.7, 33.6, 17.9, 41.0, 41.6, 47.8, 43.2, 38.3, 39.9,
+38.0, 28.3, 48.4, 34.7, 52.9)
+
+dif <- a-b
+
+# Aplicar una poda del 20% al conjunto de diferencias
+gamma <- 0.2
+
+nm <- length(dif)
+
+poda <- floor(n © gamma)
+
+dif <- sort (dif)
+
+dif_trume <- dif[(poda + 1):(n - poda)]
+
+nt <- length(dif_trunc)
+
+# Obtener graficos Q-Q de las diferencias originales y podadas
+datos <- data.frame(Diferencia = c{dif, dif_trunc),
+Muestra = c(rep("Original", n),rep("Podados", n_t)))
+
+qq “- ggagplot(datos, x = "Diferencia", facet.by = "Muestra",
+palette = c("steelblue", "steelbluei"), color = "Muestra",
+xlab = "Cuantil teorico™,
+ylab = "Diferencias en tiempos\nde ejecucion [ms]")
+aq “- qq + theme(legend. position = "none")
+1 print (qq)
+
+El enunciacde del ejemplo sugiere que las condiciones de independencia entre los pares de observaciones se
+estaria cumpliendo. Por otro lado, los graficos Q-Q de las diferencias en tiempos de ejecucién (figura 12.5)
+muestran que existe bastante asimetria hacia la cola inferior en la muestra original, aunque se reauelve bien
+al considerar la muestra truncada, las que no tampoco incluyen valores atipicos extremos, Si bien el nivel
+de poda usado en este grafico es razonable, el tamafo de la muestra es bastante reducida, con salo 15 pares
+le observaciones. Por esta ultima razon y la asimetria que podria existir en la poblacion de origen, seremos
+prudentes y usaremos un nivel de significacién exigente: a = 0,01.
+
+Entonces, para el ejemplo varnos a contrastar las siguientes hipdtesis:
+
+Hy: Sin considerar casos extremos, en promedio, los algoritmos A y B tardan lo mismo en resolver las
+
+mismas instancias de prueba. Matematicamente: si D es la distribucién de las diferencias en el tiempo
+
+de ejecucion que tardan los algoritmos en resolver las mismas instancias, entonces la media truncada
+
+de estas diferencias es nula: y}, = 0.
+
+H4: A pesar de no considerar los casos extremos, los algoritmos A y B, en promedio, no toman el mismo
+tiempo de ejecucién para resolver las mismas instancias de prueba. Es decir, jj, 4 0
+
+E] script 12.5 ilustra el uso de la funcién yuend( para el ejemplo, obteniéndose el resultado que muestra la
+figura 12.6.
+
+Prueba de Yuen para dos muestras pareadas
+Call:
+yuend(x = a, y = b, tr = gamma)
+
+Test statistic: -3.5843 (df = 14), p-value = 0.00299
+
+Trimmed mean difference: -5.02667
+95 percent confidence interval:
+-8.0346 -2.0188
+
+Explanatory measure of effect size: 0.72
+
+Figura 12.6; resultado de la prueba de Yuen para las muestras apareadas del ejemplo,
+
+Podemos ver que la prueba resulta significativa (T,(14) = —3,584; p = 0,003; y = 0,2) para el nivel de
+significacion establecido. Asi, debemos concluir con 99 % confianza que existe una diferencia estadisticamente
+significativa en el desempeno de ambos algoritmos, siendo el algoritmo A el mas eficiente (puesto que la
+diferencia estimada entre las medias tiene signo negativo).
+
+Script 12.5: (continuacién del script 12.4) prueba de Yuen para dos muestras pareadas.
+# Aplicar y mostrar la prueba de Yuen para muestras apareadas
+gamma <
+prueba <- yuend(x = a, y = b, tr = gamma)
+cat("Prueba de Yuen para dos muestras pareadas\n")
+cat("----------------------------~------------~- \n")
+print (prueba)
+
+12.1.4 Andlisis robusto de una via para muestras independientes
+
+E] paquete WRS2 ofrece diferentes alternativas a ANOVA de una via para muestras independientes que pode-
+mos usar cuando los tamaiios muestrales son muy diferentes o no se cumple la condicién de homocedasticidad.
+‘Todas ellas asumen que:
+
+s Las observaciones en una muestra son independientes, es decir que las observacién se cligen sin considerar
+ninguna otra.
+
+= Las muestras son independientes, es decir que las observaciones de una muestra no tienen ninguna
+relacién con alguna de las observaciones en las otras muestras.
+
+= La(s) variable({s) estudiada(s) tiene(n) al menos escala de intervalos iguales.
+
+Sin embargo, también debemos tener en cuenta condiciones que afectan la calidad de la prueba, que son
+andlogas a las mencionadas para la prueba de Yuen.
+
+La funci6n tiway(formla, data, tr, alpha) efectia un procedimiento similar a ANOVA usando medias
+
+truncadas. A su vez, la funcién lincon(formula, data, tr, alpha) permite realizar el procedimiento post-
+
+7. =
+
+De manera similar, tiwaybt(formula, data, tr, aboot) realiza un procedimiento analogo al anterior in-
+corporande bootstrapping. En este caso, el procedimiento post-hoc puede realizarse mediante la funcidn
+meppb20(formula, data, tr, mboot).
+
+Una tercera opcién es la funcién mediway(formla, data, iter), que emplea la mediana y sigue un proceso
+iterativo. No obstante, en este caso el paquete no ofrece funciones que permitan realizar cl procedimiento
+post-hoc.
+
+Los argumentos asociacdos a las funciones mencionadas en los parrafos anteriores son:
+
+® formula: de la forma <variable_dependiente> ~ <variable_independiente> .
+=» data: matriz de datos.
+
+® tr: parimetro ¥ de la poda.
+
+= alpha: nivel de significacién.
+
+= obeot: cantidad de repeticioncs bootstrapping.
+
+= iter: cantidad de iteraciones a realizar,
+
+Para ejemplilicar pensemos que ahora desearmos comparar el tiempo promedio de ejecucién (en miliseguncdos)
+de tres algoritmos que resuelven instancias distintas del problema de ruteamiento de vehiculos eléctrieos
+con estaciones de carga intermedia, contando con ny = 40 observaciones para el algoritmo A, ny = 30
+observaciones para el 3 y ne = 36 observaciones para el C. El script 12.6 presenta estas observaciones (lineas
+4-17). Considerando que esta comparacién podria realizarse por medio de un procedimiento ANOWA para
+muestras indepencdientes, el script también produce graficos Q-() para las muestras (lineas 25-29), los que
+son presentados en la figura 12.7, donde se observa que las observaciones recogidas presentan desviaciones
+importantes del comportamiento esperace para datos que provienen de distribuciones normales. De esta
+forma, por lo que no podriamos utilizar el procedimiento ANOVA, al menos de manera directa,
+
+Sat
+ca]
+
+&
+%
+
+nm
+an
+*
+.
+
+Tiempos
+de ejecucidn [ms]
+
+8
+
+-2 -1 #4 1 2 2 -l O 1 2 2 -l1 oO 1 2
+Cuantil tedrica
+
+Figura 12.7: grificos Q-Q de las observaciones del ejemplo,
+
+Sin embargo, la figura 12.7 tambien sugiere que las desviaciones ocurren en los extremos de las muestras, por
+lo que razonablemente podriamos Spore r que Oo Wn Pare medias truncadas podria ser mas adecuado. Como
+la variable dependiente ina medicion fisica (ticmpo), ya sabemos que cumple con la escala de intervalos
+iguales. Ademas la descripcién del ejemplo sugiere que las muestras también cumplen las condiciones de
+independencia en cada muestra y entre ellas.
+
+Script 12.6: observaciones del tiempo de ejecucion registrado por tres algoritmos en instar : diferentes.
+
+library (ggpubr)
+library (WRS2)
+
+# Construir las estructuras con los datos
+
+A <- €(25.1, 25.2, 25.3, 25.3, 25.4, 25.4, 25.5, 25.5, 25.6, 25.8, 25.8,
+25.9, 25.9, 26.0, 26.0, 26.2, 26.2, 26.2, 26.3, 26.4, 26.5, 26.5,
+26.6, 26.7, 26.7, 26.9, 26.9, 27.0, 27.1, 27.3, 27.8, 28.4, 28.5,
+29.0, 29.8, 30.2, 31.8, 31.9, 33.3, 33.7)
+
+B <- c(24.1, 24.4, 24.4, 24.5, 24.7, 24.8, 24.8, 25.1, 25.2, 25.2, 25.2,
+25.3, 25.4, 25.7, 25.7, 26.3, 26.3, 26.4, 26.5, 27.2, 27.7, 28.3,
+
+26.4, 26.4, 28.6, 28.7, 29.6, 29.9, 30.1, 30.6)
+DI
+© una_via <- tiway (Tiempo
+
+5, 24.5, 24.5, 24.5, 24.5, 24.5, 24.6, 24.6, 24.6, 24.6, 24.6,
+6, 24.7, 24.7, 24.7, 24.7, 24.8, 25.0, 25.0, 25.0, 25.2, 25.2,
+26.2, 26.2, 25.6, 25.7, 26.9, 26.2, 26.6, 26.6, 26.7, 27.0, 29.2,
+9, 30.1)
+
+Tiempo <- c(A, B, C)
+| Algoritmo <- c(rep("A", length(A)), rep("B", length(B)), rep("C", lemgth(C)))
+1 Algoritmo <- factor (Algoritac)
+
+datos <- data.frame(Tiempo, Algoritmo)
+
+# Obtener gréficos Q-Q de las muestras
+
+qq <- geqqplot(datos, x = "Tiempo", facet.by = "Algoritmo", color = "Algoritmo",
+palette = c("steslblue", "“stealbluei", "“steelblue4"),
+xlab = "Cuantil teérico", ylab = "Tiempes\nde ejecucién [ms]")
+
+2 qq <- qq + theme(legend.position = "none")
+‘| print (qq)
+
+De esta forma, podemos aplicar cl andlisis robusto de una via para muestras independientes, con las siguientes
+
+hipotesis:
+
+Ay: el tiempo de ejecucién promedio necesitado para resolver instancias de igual tamatio cs la misma para
+los tres algoritmos. MatemAticamente: py = pp = ue.
+
+Ay: el tiempo de ejecucién promedio necesitado para resolver instancias de igual tamaiio es diferente para
+al menos un algoritmo. Matematicamente: ti, 7 €{A,B,C}.i #9 | oy yy.
+
+Supondremos un nivel de significacién o = (),05 para este estudio.
+
+El seript 12.7 ilustra el funcionamiento de las funciones tivay() y lincon() del paquete WRS2 que aplican,
+respectivamnente, las pruebas robustas Gmnibus y post-hoc para el andlisis de las muestras independientes del
+ejemplo. Alguicn prestando atencién habré notade que antes de la llamada a la prucba émnibus hemos fijado
+una semilla para la reproducibilidad de nimeros aleatorios y que, en la Hamada, hemos indicado el argumento
+nbeot = B. Debemos aclarar que esta prueba es asintética, como la gran mayoria de las pruebas que hemos
+estudiado, pero los procedimientos para estimar el tamaneo del efecto v el intervalo de confianza que reporta si
+hacen uso de bootstrapp . Esta es la raxdn peor la que hemos definide una sermilla para niimeros aleatorios
+fija ¥ un nimero de iteraciones bootstrap. También debemos observar que no hemos indicado un método para.
+ajustar los valores p de las comparaciones post-hoc, por lo que la funcion Lincon() utiliza el procedimiento
+de Benjamini vy Hochberg (por omision).
+
+Script 12.7: (continuacién del script 12.6) andlisis robusto de una via para comparar muestras
+independientes.
+
+# Fijar nivel de significacién, nivel de poda y nro. de iteraciones bootstrap
+alfa <- 0.06
+gamma <- 0.2
+nbest <- 999
+
+# Comparar los diferentes algoritmos usando medias truncadas
+get. geed (666)
+
+Algoritmo, data = datos,
+tr = gamma, alpha = alfa, nboot = nboot)
+
+1 cat("Analisis de una via para muestras independientes (asimpético) \n")
+
+emt ("----------------------- 2-2-2 3 2 nnn nnn ne enn nnn nee nne Ne")
+print Cuna_via)
+
+ifCuma_vial["p.value"]] <« alfa) 4
+una_via_ph <- lincon(Tiempo ~ Algoritmo, data = datos,
+tr = gamma, alpha = alfa)
+
+cat ("Analisis post-hoc para muestras independientes (asimpético) \n")
+eat ("------------------------------ +--+ +222 ee en nnn renee eee \m")
+print (una_via_ph)
+
+}
+
+El resultado de ejecutar este trozo de codigo puede verse en la figura 12.8. Vemos que la prueba robusta
+dmmibus resulta significativa (F(2; 34,39) = 1081; » < 0,001) al nivel establecido, por lo que debemos
+rechazar la hipétesis nula. Concluimos, entonces, con 95% confianza, que existe una diferencia estadistica-
+mente significativa entre los tiempos promedio de ejecucién de los algoritmos cuando no se consideran casos
+extremos. Al cfectuar el procedimicnto post-hoc, podemos concluir que, sin considerar los casos extremos, cl
+algoritme © presenta un tiempo de ejecucién promedio mas alto que los algoritmes A (7, — T= 14196 [ms];
+95 %CT: (0,791; 2.444] |ms|; p < 0,001) y B (, — 7. = 1,250 [ms]: 95 %CT: 0,163; 2,342] [ms|; p = 0,008).
+
+Analisis de una via para muestras independientes (asimpético)
+
+Call:
+
+tiway{formula = Tiempo ~ Algoritmo, data = datos, tr = gamma,
+alpha = alfa, nboot = B)
+
+Test statistic: F = 10.9813
+Degrees of freedom 1: 2
+Degrees of freedom 2: 34.39
+p-value: 0.00021
+
+Explanatory measure of effect size: 0.46
+Bootstrap CI: (0.27; 0.67]
+
+Analisis post-hoc para muestras independientes (asimpétice)
+
+Call:
+
+lincon(formula = Tiempo ~ Algoritmo, data = datos, tr = gamma,
+alpha = alfa)
+
+psihat ci.lower ci.upper p.value
+vs. B 0.24583 -1.11867 1.61033 0.65252
+ve. € 1.49583 0.65571 2.33596 0.00022
+vs. € 1.25000 -0.02757 2.52757 0.03909
+
+o> >
+
+Figura 12.8: resultado de la prueba de Yuen para las muestras apareacas del ejemplo.
+
+Por otro lado, el script 12.8 muestra el uso de las funciones tiwaybt() y meppb20() que aplican bootstrapping
+para el anilisis robusto 6mnibus y post-loc a las muestras independientes del ejemplo. Nuevamente debemos
+hacer una observacién: no hemes definido un nivel de significacién para el efileulo de intervalos de confianza,
+Esto se debe a que la funcién para aplicar el procedimicnto émnibus no estima tal intervalo, mientras que la
+funcidn que implementa el procedimienta post-hoc [siempre utiliza a = 0,05!. Ademas, debemos decir que la
+funciém meppb20() ajusta los muiltiples valores p con un método ad-hoc para controlar la tasa de error por
+familia.
+
+Script 12.8: (continuacién del script 12.7) andlisis robuste de una via para mucstras independicntes
+aplicando bootstrapping.
+
+# Comparar los diferentes algoritmos usando medias truncadas y bootstrapping
+set.seed (666)
+una_via_bt <- tiwaybt (Tiempo ~ Algoritmo, data = datos,
+
+tr = gamma, nboot = nboot)
+
+cat("Anadlisis de una via para muestras independientes (bootstrapped)\n")
+6 Gat CT enn ee ee ee ee ee ee eee eee ene \o")
+print (una_via_bt)
+
+if(una_via_bt(["p.value"]] < alfa) {
+set.seed (666)
+una_via_bt_ph <- mceppb20 (Tiempo “ Algoritmo, data = datos,
+tr = gamma, nboot = nboot)
+
+cat("An&éligis post-hoc para muestras independientes (bootatrapped)\n")
+cat ("------------------------------------------------------------- \o")
+print (una_via_bt_ph)
+Andlisis de una via para muestras independientes (bootstrapped)
+
+Call:
+tiwaybt (formula = Tiempo ~ Algoritmo, data = datos, tr = gamma,
+nboot = B)
+
+Effective number of bootstrap samples was 999.
+
+Test statistic: 10.9813
+p-value: 0.001
+
+Variance explained: 0.179
+Effect size: 0.424
+
+Analisis post-hoc para muestras independientes (bootstrapped)
+
+Call:
+mcppb20(formula = Tiempo ~ Algoritmo, data = dates, tr = gamma,
+nboot = B)
+
+psihat ci.lower ci.upper p-value
+Avs. B O.24583 -0.91667 1.61389 0.55656
+Ave. C 1.49583 0.73690 2.44464 0.00000
+Bvse. € 1.235000 0.16270 2.34206 0.00801
+
+Figura 12.9: resultado de la prueba de Yuen para las muestras apareadas del ejemplo.
+
+El resultado que entrega el script 12.8 es mostrado en en la figura 12.9, donde vemos que la prueba robusta
+Omnibus resulta significativa, reportando el mismo estadistioa que el procedimiento asintético, con un valor p
+estimado via bootstrapping algo mayor (p = 0,001). confirmande la existencia de diferencias estadisticamente
+significativas en los tiempos de ejecucion requeridos por los algoritmos cuando no se consideran casos extremos,
+
+El procedimiento post-hoc con bootstrapping también confirma que, con 5% confianza, sin considcrar los
+
+casos extremos, el algoritmo C presenta un tiempo de ejecucién promecdio mas alto que los algoritmos A y
+B, aunque con intervalos de confianza y valores p, estimados con 999 repeticiones bootstrap aleatorias, son
+un tanto distintos,
+
+12.1.5 Analisis robusto de una via para muestras correlacionadas
+
+Desde luego, cl paquete WAS2 también ofrece opciones robustas para reemplazar el procedimicnto ANOVA
+de una via para muestras correlacionadas, que podemos usar cuando los datos disponibles violan la condicién
+de normalicad o de estericidad. Estos procedimientos robustes asumen las siguientes conclicianes:
+
+e Los casos o bloques medidos son independientes entre si,
+« Se tiene un conjunto de mediciones (usualmente mayor a dos) para cacla caso o bloque.
+« Las variable medida tiene al menos escala de intervalos iguales.
+
+También debemeos tener en cuenta las condiciones que afectan la calidad de la prueba, que son andlogas a las
+mencionadas para la prucba de Yuen con muestras aparcadas.
+
+La funcién rmanova(y, groups, blecks, tr) efectiia un procedimiento similar a ANOVA usando medias
+truncadas, mientras que la funcién romcp(y, groups, blecka, tr, alpha) implementa el procedimiento post-
+hoc para dicha prueba. Por otra parte, rmanovab(y, groups, blocks, tr, nbeot) realiza la misma tarea que
+rmaneval), incorporando bootstrapping. En este caso, el procedimicuto post-hoc esta dado por la funcién
+pairdepb(y, groups, blocks, tr, nboot). Los argumentos para esta familia de funciones son:
+
+= formula: de la forma <variable_dependiente> ~ <variable_independiente> .
+
+» y: vector con la variable depenciente.
+= groups: vector que indica las medidas repetidas.
+= blocks: vector que identifica los casos o bloques.
+« tr: parametro + de la poda.
+» alpha: nivel de significacién.
+» nboot: cantidad de repeticiones bootstrapping.
+
+Consideremos, WIL Ver mas, la comparacion del desermipeno de los tres algorit ros i plementacos pre el
+problema de ruteamiento de vehiculos eléctrieos con estaciones de carga intermedia (A, By ©), pero esta vez
+utilizande las mismas 25 instancias de igual tamaio y complejidad construidas aleatoriamente, El script 12.9
+(lineas f-15) muestra los tiempos de ejecucién, cn milisegundos, registrados para cada algoritme al resolver
+cada presenta de estas instancias de prueba.
+
+Considerando que esta comparacion podria llevarse a cabo aplicando un procedimiento ANOVA para medidas
+repetidas, el seript obtiene las diferencias pareacas entre cada par de algoritmos y construyve graticos Q-C)
+para catas diferencias (Lineas 30-33), en los que se observa. la presencia de valores at {picos ¥ desviaciones del
+comportamicnto esperado (figura 12.10) si las distribuciones de origen de estas diferencias fueran normales.
+Luego, parece mas aconsejable utilizar las alternativas robustas para analizar estos datos como alternativa al
+procedimiento ANOVA para muestras correlacionadas.
+
+AB AC BC
+
+2: .
+g_ .
+BE] ed
+fe .
+oa
+eg-14
+58 -
+a -24,° .*
+
+a ee es
+‘Cuantil tedrica
+
+-1 #0 1 zg <2
+
+Figura 12.10: gréfieos Q-Q de diferencias en los tiempos de ejecucién requerido por los algoritmos del
+ejemplo,
+
+Como hemos discutido en los ejemplos anteriores, los tiempos de ejecucién cumplen con tener cscala de
+intervalos iguales y el experimento asegura una seleceién aleatoria de los casos de prueba (instancias), que
+no afectan en el tiempo requeride por otras instamcias, garantizando asi su mutua independencia.
+
+Script 12.9: diferencias en los tiempo de ejecucién registrados por tres algoritmos en las mismas imstancias.
+
+library(dplyr)
+library({ggpubr)
+library (tidyr)
+library (WRS2)
+
+# Construir las estructuras con los datos
+
+A <- c(32.0, 32.0, 32.0, 32.0, 32.1, 32.1, 32.1, 32.2, 32.3, 32.3, 32.5,
+32.7, 32.7, 32.7, 33.1, 33.4, 33.9, 34.1, 34.2, 34.6, 36.0, 36.6,
+36.7, 37.2, 38.0)
+
+B <- c(33.0, 33.0, 33.0, 33.0, 33.0, 33.0, 33.3, 33.3, 33.3, 33.3, 33.5,
+33.6, 33.7, 33.9, 33.9, 34.2, 34.2, 34.3, 34.3, 34.4, 34.6, 34.6,
+36.4, 38.9, 40.2)
+
+© <- c(32.0, 32.2, 323.5, 32.6, 32.7, 32.7, 32.7, 33.0, 39.2, 33.4, 33.6,
+33.6, 33.9, 34.1, 34.2, 34.4, 34.4, 34.6, 34.6, 34.7, 36.3, 36.6
+36.7, 38.9, 39.2)
+
+Instancia <- factor(1:langth(A))
+
+datos_anchos <- data.frame(Instancia, A, B, €)
+
+i d@if_amchos <- data.frame(A_B = A - B, A.C = A - C, B_C = B - G}
+# Lievar las matricas de datos a formato largo
+datos <- datos_anchoa |>
+pivot_longer(c("A", "B™, "C"), names_to = "Algoritmo", values_to = "Tiempo") |>
+
+2 mutate(Algoritmo = factor (Algoritmo))
+
+dif <- dif_anchos |>
+rs pivot_longer(everything(), names_to = "Algoritmos", values_to = "Diferencia™) |>
+mutate (Algoritmes = factor(Algoritmos))
+
+# Obtener graficos Q-@ de las diferencias
+
+qq <- ggqgplot(dif, x = "Diferencia", facet.by = "Algoritmos",
+color = "Algoritmes",
+palette = c("steelblue", "“steelbluei", "ateelblue4"),
+zlab = "Cuantil teérico",
+ylab = "Diferencias en tiempos\nde ejecucién [ma]")
+
+qq *- qq + theme(legend.position = "none")
+
+: print (qq)
+
+estras correlacionadas
+
+Asi, se cumplen las condiciones para aplicar un andlisis robusta de una via para o
+para contrastar, en el ejemplo, las siguientes hipotesis:
+
+Ay: en promedio, no hay diferencias en el tiempo de ejecucién necesitado por cada algoritme en resolver
+las mismas instancias. Si iy a, fhaoc) ¥ fe —c) denotan las medias de las diferencias en tiempos de
+ejecucién necesitade por cada par de algoritmos, entonces la hipétesis puede eseribirse como: py y— ey) =
+fac) = ite-c) = 0.
+
+Ay: la media de las diferencias en el tiempo de ejecucién necesitado para resolver las mistmas instancias es
+diferente para al menos un par de algoritmos. Matematicamente: 3.A;,A; € {A,BLC}.| pa, oO.
+
+El script 12.10 ilustra el funcionamiento de las funciones mmanova() y reacp() del paquete WRS2 que aplican
+las pruebas robustas 6munibus y post-hoc, respectivamente, para el andlisis de las medidas repetidas del
+ejemplo con un nivel de significacién « = 0,05 y de recorte +~ = 0,2. Come para las muestras independientes,
+es importante tener en cuenta que el procedimiento post-hoc utiliza el método de Benjamini y Hochberg para
+el ajuste de los valores p de las comparaciones post-hoc entre todos los pares de mediciones (aunque esto
+noes reportade por la funcién ramep()), Otro saspecto a notar es que a esta funcién también entregamos el
+nivel de significacion establecicdo { alpha = alfa) para que pueda estimar los corres pondientes intervalos de
+confiansa.
+
+Seript 12.10: (eontinuacidn del script 12.9) andlisis robusta de una via para muestras correlacionadas.
+# Fijar nivel de significacion y nivel de poda
+alfa <- 0.05
+gamma <- 0.2
+
+# Comparar los algoritmos usando medias truncadas de las diferencias
+fr_rob <-rmanova(y = datos(("Tiespo")), groups = datos(("Algoritme"]),
+blocks = datos[["Instancia"]], tr = gamma)
+
+cat("Analisis de una via para medidas repetidas (asimpético)\n")
+Cat (8 awe eee ee eee AD
+
+print (mr_rob)
+
+if(er_rob[["p.value"]] < alfa) {
+mr_rob_ph <- ramcpty = datos (("Tiempo")]], groups = datos [(({"Algoritme")),
+blocks = datos[["Instancia"]], tr = gamma, alpha = alfa)
+
+cat("Analisis post-hoc para medidas repetidas (asimpéticeo)\n")
+at ee oocscscooescrrecsoeeeooesemmcssceccossesccscnesseccdinih
+
+print (mr_rob_ph)
+
+La figura 12.11 contiene el resultado de ejecutar el seript 12,10, que indica que la prueba robusta émmnibus es
+significativa para el ejemplo (C150; 20,96) = 24,171: p < 0,001) al nivel estableciclo, por lo que debemos
+rechazar la hipétesis nula. Concluimos, entonces, con 95% confianza, que existe una diferencia estadistica-
+mente significativa entre los tiempos promedio de ejecucién de los algoritmos cuande mo se consideran casos
+ex Lreimos.
+
+Al efectuar el procedimienta post-hoc recortanda los casos extremos podemos coneluir que el algoritmea A es
+significativamente mas eficiente que los algoritmos B (%,—F, = —0,853 [ms]; 95 %CI:(-1,168; —0,538) [ms|;
+
+Andlisis de una via para medidas repetidas (asimpétice)
+
+Call:
+rmanovaty = datos[["Tiempo"]], groups = datos[["Algoritmo"]],
+blocks = datos[["Instancia"]), tr = gamma)
+
+Test statistic: F = 24.1706
+Degrees of freedom 1: 1.5
+Degrees of freedom 2: 20.96
+p-value: 1le-05
+
+Analisis post-hoc para medidas repetidas (asimpotica)
+
+rumcp(y = datos[["Tiempo"]], groups = dates[["Algoritmo"]], blocks = datos[(["Instancia"]],
+tr = gamma, alpha = alfa)
+
+psihat ci.lower ci.upper p.value p.crit sig
+Ava. B -0.85333 -1.16837 -0.53830 0.00000 0.0169 TRUE
+Ava. C -0.68667 -0.98245 -0.39089 0.00002 0.0250 TRUE
+B vs. C -0.00667 -0.26776 0.25443 0.94566 0.0500 FALSE
+
+Figura 12.11: resultado del andlisis robusto de una via para las medidas repeticas del ejemplo.
+
+p< 0001) y © (7,-—32 = —0,687 [ms]; 95 %CT:[-0,982; —0,591) [ms]; p < 0,001). Sin embargo, debemos
+notar que la media recortada ce las diferencia en los tiempos de ejecucién requeridos por los algoritmmos By
+C (%, —, = —0,007 [ms]; 95 CL [—0,268; 0,254] [ms|) esta al borde de ser significativamente distinta de
+cero (po = 0,050),
+
+Una forma ce comprobar los resultados anteriores es usar las funciones rmanovab() y pairdepb() que aplican
+bootstrapping para el andlisis robusto émnibus y post-hoc con las medidas repetidas del ejemplo, como
+muestra el script 12.11. Debemos comentar que nuevamente no indicameos un métode de ajuste para pruchas
+multiples ni el nivel de significacién para el calculo de intervalos de confianza en la llamada al procedimicnto
+post-hoc, puesto que la funcién pairdepb() utiliza un método ad-hoc que considera el nimero de iteraciones
+bootstrap simuladas para controlar la tasa de error por familia y un nivel de signifieaciOn constante a = 0,05,
+
+Script 12.11: (continuacién del script 12.10) anilisis robusto de una via para muestras correlacionadas
+usando bootstrapping.
+
+# Fijar la cantidad de iteraciones bootstrap
+nboot <- 999
+
+# Comparar los algoritmos usando diferencias truncadas y bootstrapping
+
+set, seed (666)
+
+mr_bt <- rmanovab(y = datos[["Tiempo"]], groups = datos [["Algoritmo"]],
+blocks = datos[["Instancia"]], tr = gamma, nboot = nboot)
+
+cat("Andlisis de una via para medidas repetidas (beotstrapped)\n")
+3 | eae ee ee ee a ee ee eee eee \n")
+print (mr_bt)
+
+if(mr_bt[["teat")) >» mr_bt[["cerit"])) {
+set.seed (666)
+mr_bt_ph <- pairdepb(y = datoa[["Tiezpo"]], groups = datos [["Algoritmo"]],
+blocks = datos[["Instancia"]], tr = gamma, nboot = nboot)
+
+cat("Analisis post-hoc para medidas repetidas (bootstrapped)\n")
+cat("------------------------------------------------------- \n")
+print (mr_bt_ph)
+
+La figura 12.12 presenta la salida que genera el script 12.11, donde es posible observar que el valor erftico
+estimado con bootstrapping Fi, = 4,426 es mucho menor que el estadistico de prueba observade F = 24,171;
+
+Andlisis de una via para medidas repetidas (bootstrapped)
+
+Call:
+
+rmanovab(y = datos[["Tiempa"]], groups = datos[["Algoritme"]],
+blocks = datos[["Instancia"]], tr = gamma, nboot = nhoot)
+
+Test statistic: 24.1706
+Critical value: 4.4257
+Significant: TRUE
+
+Andlisis post-hoc para medidas repetidas (bootstrapped)
+
+Call:
+pairdepb(y = datos[["Tiempa"]], groups = datos[["Algoritme"]],
+blocks = datos[["Instancia"]], tr = gamma, nboot = nboot)
+
+psihat ci.lower ci.upper test crit sig
+Avs. B -0.76000 -1.58621 0.06621 -4.59149 4.99147 FALSE
+Ave. C -0.81333 -1.42195 -0.20469 -6.67012 4.99147 TRUE
+Bvs. C -0.05333 -0.52991 0.42325 -0.55859 4.99147 FALSE
+
+Figura 12.12: resultado de procedimientos robustos para el andlisis de una via para medidas repetidas.
+
+confirmando la existencia de diferencias estadisticamente significativas en los tiempos de ejecucién requeridos
+por los algoritmos cuando no se consideran casos extremos.
+
+El procedimiento post-hoc con bootstrapping, sin embargo, entrega una vision distinta a la obtenida con
+el equivalente asintético, Vernos que se establece un valor critica f,,, = 4,991 considerando las repeticiones
+
+bootst repr, el cy ile: solo ea superacdo por la media recortada de las diferencias entre los algoritimos A ¥ Cc:
+(F, — 7%), = —0,813 [ms]; 95 %CL: [—1,422; —0,205] [ms]; fn = 6,670),
+
+Iacwnt
+
+Consideremos nuevamente el grafico ()-Q de las diferencias mostrado en la figura 12.10. Vemos que particu-
+larmente para las diferencias entre los algoritmos A v 4 se observan ciertas desviaciones cde mormalidacd y
+asiimetria que probablemente no se reswelven podande el 20% de los casos de cada extreme, lo que podria
+estar afectando la calidad de la prueba asintotica. Por esta razon, en este caso, y en general con métodos
+asintétioos, los resultados basacos en simulaciones de bootstrapping son mas confiables. Asi, concluimos en-
+tonces con 95% confianza que la evidencia cs solamente suficiente para establecer que el algoritmo A es mds
+eficiente que el algoritmo C cuando no se consideran casos extremes.
+
+Nota importante
+
+Debemos saber que el paquete WRS2 implementa muchas otros estimadores robustes y pruebas de hipdétesis
+hasadas en estos estimadores, Entre los no mencionados en esta seccién, hay medidas y procecimientos
+robustos para obtener intervalos cle confianza a partir de nA mucstra, alternat nas para ANOVA de: res de
+una via, para modelos mixtos y para analizar regresién. También hay una familia de funciones que permite
+comparar variables aleatorias discretas (proporciomes),
+
+No es posible discutir las bases tedricas de todos estos métodos en esta secciém, pero los desarrollos mate-
+miaiticos vy teoremas asociados a sus distribuciones muestrales se presentan en detalle en Wileox (3012). Este
+libro se ha convertide en un referente de la estadistica robusta, y presenta muchos més conceptos y métodos
+que los implementados en WRS2.
+
+R. RB. Wileox no es el Gnico investigador en esta area, como puede verse en la pagina de R dedicada al tema
+
+(Maechler, 2014).
+12.2 REMUESTREO
+
+Los métodos basados en remuestreo son una buena alternativa a emplear cuancde necesitamos inferir
+sobre pardmetros distintos a la media o la proporciém, o bien cuando no se cumplen los supuestos sobre la
+distribuciém de los datos (como normalidad u homocedasticidad) o el conocimiento de pardimetros poblacio-
+nales (como la varianza) que hacen las pruebas paramétricas estudiadas. También pueden ser ftiles cuando
+las muestras son reducidas e insuticiente para asegurar que ¢l Teorema del Limite Central esta operanda, lo
+que hace que las aproximaciones asintoticas en que se basan las pruebas clisicas pueda ser imprecisas.
+
+La idea basiea detras del remuestres es extraer repetidamente muestras desde un conjunto original de
+dates observados para obtener informacién sobre la poblacién de la que provicnen. A estas mucstras de
+la muestra original se les conoce come remuestras.
+
+En ves de depender de supuestos teéricos sobre la distribucién de la poblacién, el remuestreo utiliza las
+remuestras para simular miltiples experimentos y obtener un conjunto de estadisticas de ellos, desde
+donde se pueden obtener estimaciones de la variabilidad de un estadistico muestral, construir intervalos de
+confianga o docimar hipét
+
+Sin embargo, aunque el remuestreo relaja muchas condiciones paramétricas, no esta libre de supuestos:
+
+» La muestra original es representativa de la poblacién, que es fundamental para que las estadisticas
+obtenidas con las remuestras sean vilidas, Si la muestra original esta sespada, las remuestras también lo
+estaran, ¥ las conclusiones que podamos obtener podrian ser equivocadas para la poblacién en estudio.
+Las observaciones dentro de la muestra original son independientes, Si bien existen algunos métodos de
+remues ire para. clatos OTL dependencias (come Series de tiempo COM autocorrelacion oO datas agrupados) ‘
+las técnicas basicas, como las estudiadas en este capitulo, requicren la independencia entre los casos
+incluidos en la muestra,
+
+La validez de las conclusiones obtenidas con la mayoria de las técnicas de remuestreo depende criticamente
+de que estos supuestos se cumnplan razonablemente. ‘También es necesario tener en cuenta que cada técnica
+de remuestreo puede hacer suposiciones proplas, y que deben cumplirse para aplicarse con valides.
+
+Pese a estas ventajas, los métodos basados en remuestreo realizan enormes cantidades de edmputos, por lo
+que en la prictica requieren de herramientas de software para su aplicacién, Por otro lado, aunque existen
+métodos che renruest reo paramétricos vy semiparumétricos, en este capitulo abordaremos las principales bécnicas
+de remuestro no paramétrico, basfindonos en las ideas deseritas por Amat Rodrigo (2016) y Hesterberg
+et al. (2003).
+
+12.2.1 Bootstrapping
+
+A partir de lo que hemos aprendido hasta ahora, deberiamos tener claro que en estadistica el ideal es contar
+con varias muestras grandes. Pero muchas veces solo disponemos de una muestra relativamente pequena.
+Sin embargo, si esta muestra es representativa de la poblacién, esperariamos que las observaciones que
+ella contiene aparecieran con frecuencias similares a las de la poblacién. El método de remuestreoe
+bootstrapping se construye en torno a esta idea,
+
+En general, si queremos inferir el valor de un parimetro de la poblacién @, hasta ahora lo hemos hecho a
+
+partir de un estimador puntual @ calculado desde una muestra. Aplicar bootstrapping en este proceso de
+inferencia, en términos generales, sigue los siguientes pasos:
+
+1. Crear una gran cantidad 6 de remuestras (cientos, miles, decenas de miles y hasta cientos de miles)
+a partir de la muestra original. Cada remuestra debe tencr cl mismo tamano que la original y se
+construve mediante muestreo con reposicién. Esto quiere decir que al seleccionar un caso desde
+la muestra original, este se dewuelve a ella antes de tomar el siguiente, por lo que el caso podria ser
+reclogicdo.
+
+2. Calcular el estadistico de interés #* para cada una de las remuestras; aqui se usa “*" para imdicar
+que corresponde aun estadistica bootstrap, es decir, obtenido desde una remucstra generada con
+bootstrapping. Estos cstadisticos bootstrap producen una distribucién empirica del cstadistico 4, la que
+se conoce como distribucién bootstrap.
+
+3. Usar la distribucién bootstrap para obtener informacion itil acerea de la forma, el centro y la variabi-
+lidad de la distribucién muestral del estadistico de interés @.
+De esta forma, podemos obtener estadisticos bootstrap desde la distribucion bootstrap. Por ejemplo, podemos
+obtener su mecia y error estandar por medio de las ecuaciones 12.7 y 12.8, respectivamente.
+
+B
+I a
+Fen) = Gl: (12.7)
+i=1
+
+s G - Fim)
+
+i=l
+Axi (12.8)
+
+SE (on) =
+
+También es posible obtener facilmente un intervalo de confianza para 4, simplemente se considera cl rango de
+valores en tarno al centro de la distribucién muestral que cumple con el LOD(1 — a) % de confianza deseado.
+
+Es importante remarcar que la distribucién bootstrap se centra en cl estadistico observado 4, y no, como
+deseariamos, en el pardmetro 4, Este resultado teérico origina otro estadistico mtil, llamado sesgo, bias en
+
+inglés, que corresponde al desplazamienta del estacistico @ de la media de la distribucién bootstrap que
+genera, y que esta dade por la ecuacién 12.9,
+
+§igeny = yg.) = i (12.9)
+El mayor uso de bootstrapping apunta a construir intervalos de confianza més precisos para el pardmetro i]
+a partir de la distribucién bootstrap de @, y no de la estimacién puntual (um solo valor) que @ entrega. A
+partir de alli, la técnica nos permite contrastar hipétesis.
+
+Si bien, como sugiere esta introduccién, la técnica de bootstrapping ¢s titil para pricticamente cualquier
+estadistico, revisaremos su aplicacién con la media, es decir cuando @ = yy @ = ©. Queda pendiende (como
+ejercicio propuesto) aplicarla a proporciones (6 = pv @ = p).
+
+12.2.2 Bootstrapping para una muestra
+
+Supongamos que la investigadora Helen Chufe desea evaluar un nuevo algoritmo de clasificacién y determi-
+nar el tiempo promedio de ejecucién (en milisegundes) para instancias de tamato fijo del problema, Para
+ello ha realizado pruebas con 10 instancias del problema y registrade los tiempos de ejecuciém, presen-
+tades en la tabla 12.1. La figura 12.13 muestra la distribucién del tiempo de ejecucién para la muestra.
+
+5
+
+4
+
+3
+
+Frecuencia
+
+Instancia 123 4 5 & 7 & 49 10
+Tiempo [ms]|79 75 84 75 94 82 76 90 79 BS
+
+»
+
+||
+
+et 80 85 a 6
+Tiempo [ms]
+
+Tabla 12.1: tiempo de ejecucién para cada instancia Figura 12.13: distribucién del tiempo de ejecucién
+cle la muestra, para la TaWestra ejemplo.
+
+Evidentemente, la muestra es pequena (m= 10) yo su distribucién exhibe asimetria hacia la derecha, por lo
+que Chufe ha decidido emplear bootstrapping como alternativa para enfrentar estos datos problemticos.
+
+Para ilustrar el proceso paso a paso, consideremos inicialmente 8B = 10 remmuestreos y calculemos la media
+para cada uno. La tabla 12.2 presenta en cada columna una de la muestra y las remuestras obtenidas, con
+sus Tespectivas medias en la tiltima fila.
+
+La figura 12.14 muestra la distribucién bootstrap de la media para los 10 remuestreos del ejemplo (figura
+12.14a) y para 2.000 remuestreos (figura 12.14b). En ella podemos ver claramente que, a medida que la
+SSS aan
+Original RI R2 R3S R4 RS RE RT RS RI RIO
+
+79 90 88 90 90 79 79 79 79 79 76
+75 a4 76 76 S4 79 82 79 75 90 79
+84 bE 76 94 82 79 76 84 S84 75 88
+
+5 88 94 84 79 75 79 90 94 88 &4
+94 82 79 84 90 84 76 94 94 79 88
+82 82 82 94 88 94 M4 76 79 1) 94
+76 75 90 75 82 75 82 94 82 75 82
+90 90 79 75 76 79 90 79 84 90 82
+79 84 79 79 76 90 79 82 79 79 75
+88 79 75 84 75 79 75 88 82 79 94
+
+82,2 84,8 81,8 83,5 82,2 81,3 80,2 84,5 83,2 82,4 84,2
+
+Tabla 12.2: muestra original y remuestreos de bootstrap
+
+34
+8 27 &
+:
+a1 ir
+80 81 82 83 84 2&5 77 80 83 86 89
+Tiempo [ms] Tiempo [ms]
+(a) LO remuestreos. (b) 2.000 remuestreos.
+
+Figura 12.14: distribuciones bootstrap de la media.
+
+cantidad de muestras bootstrap crece. la distribucién bootstrap de la media se asemeja cada vez mas a la
+distribucién normal, por lo que se acerca a la forma que esperariamos para la distribucién muestral.
+
+En la tabla 12.2 vemos que F = 82,2, y que el promedio bootstrap es:
+
+_ 84,8 + 81,8 + 83,5 + 82,2 + 81,3 + 80,2 + 84,5 + 83,2 + 82.4 + 84,2
+
+10
+= 1 . =
+Tz10) = 79 » BS = 10 = §2,81
+
+iss}
+
+La figura 12.14b también nos da una idea acerca de la variabilidad de los promedios de las diferentes remuestras
+que la muestra original genera. Para el ejemplo con 10 remuestreos, la suma de las desviaciones cuadradas
+es:
+
+w
+> (#7 — 82,81)? = (84,8 — 82,81)? + (81,8 — 82,81)? + (83,5 — 82,81)7+
+i=1 (82,2 — 82,81)? + (81,3 — 82,81)? + (80,2 — 82,81)?+
+(84,5 — 82,81)? + (83,2 — 82.81)? + (82,4 — 82,81)7+
+(84,2 — 82,81)?
+= 20,029
+
+En consecuencia, el error estandar de la distribucién bootstrap del ejemplo es:
+
+{20,029
+SE win) = =r 2,225
+
+Y el sesgo en este caso es:
+Otz=10) = Fye-10) — © = 82,81 — 82,20 = 0,61
+
+Ahora que va conecemos toda esta informacion de la distribucién bootstrap para la media, podemas cons-
+truir un intervalo de confianza para la media de la poblacién, para lo que aborcaremos diferentes
+alternativas.
+
+Cuando la distribucién bootstrap se asemeja a la normal y el seago es pequenio en comparacion con el estimeador
+caleulade (como en este caso, ya que 0.61 <@ 82,20), podemos construir un intervalo de confianza del mismo
+modo que hicimos en el capitulo 4, teniendo el cuidado de corregir el sesgo detectado, como muestra la
+ecuacién 12.10, donde <* es el valor critica para el nivel de confianza requerido,
+
+(% — dio) + 27 FE eae soy (12.100)
+Asi, si consideramos para este ejemplo un nivel de significacién @ = 0,01, el valor eritico (bilateral) es
+2* = tq-e/2) = 2,976. En consecuencia, el intervalo de 99% confianga resultante para la media de la
+
+poblacién es [75,859; 87,321).
+
+Otra alternativa cuando la distribucién bootstrap se asemeja a la normal, y que tiene en cuenta posibles
+asimetrias, es construir el intervalo de confinnzsa en base a cuantiles critieos. Fn este caso, para a = 0,01, los
+limites del intervalo estén dacdos por los percentiles 1 y 99 de la distribucién bootstrap, que para el ejemplo
+som: (80,250; 84,786).
+
+Cuando los intervalos de confianza obtenidos por ambos métodos son muy diferentes, es clara setial de que
+no pademos asumir que la distribucién bootstrap se axermeja a la normal. En general, lo mis recommendable
+es usar otro esquema, Wamado BCa (del inglés Mies-corrected accelerated), es decir, con seago corregida y
+acelerado, No se detalla aqui el procedimiento, pues requiere el empleo de software.
+
+Desde luego, es inviable usar bootstrapping sin software, En R existen varias funciones para “replicar’ ope-
+es, sobre yveclores o MmALlrioes, por lo que implement, ar bootst rap ing, ¥ remuestrec en general, no se
+dificult demasiado. Pero ademiis existen muchos paquetes que implementan numerosas funciones wrpper
+para entregar interfaces especiticas, en teoria, mis simples para usos comunes. Uno de los mas usados es el
+paquete boot, que ofrece las funcioncs boot(data, statistic, R) para generar la distribucién bootstrap y
+
+boot.ci(boot.out, conf, type) para calcular los intervalos de confiansa, donde:
+
+» data: el conjunto de datos. En caso de matrices y data.frame , se considera cada fila como una obser-
+vacion con miltiples variables (colummas).
+
+statiatic: funcidn que se aplica a los datos ¥ devuelve un vector con el lo los} estacist icals) de interés.
+R: cantidad de remuestreos bootstrap (es decir, B).
+
+beot.out: objeto de la clase boot, generado por la funciém beot().
+
+conf: nivel de confianza (1 — a).
+
+type: string o vector que indica los tipos de intervalo de confianza a construir ( "norm" para el basado
+en la distribucién Z, “pere® para el basacdo en los percentiles y "bea" para el método BCa),
+
+Debemos mencionar que la funcién beet Q puede recibir otros muchos argumentos, los cuales escapan al
+alcance de los contenidos aqui expuesbos,
+
+El script 12.12 construye intervalos de contianza mediante bootstrapping para el ejemplo, con B = 2.000 y
+manteniendo el nivel de significacion ao = 0,01. En las lineas 12-13 se construye la funcion para el estaclistico
+de inter’s (en este caso el promeclio), que luego usa la funcién boot (} para generar la distribuciém bootst rap
+(linea 18), luego de fijar una semilla para la gencracién de nimeros pscudoaleatorios (linea 17) de mancra de
+garantizar la reproducibilidad de los resultados.
+
+Seript 12.12: construcciém de un intervalo de confianza para la media poblacional mediante bootstrapping.
+library (boot)
+library (bootES }
+
+# Crear muastra inicial, mostrar su histograma y calcular la media
+muestra <- c(79, 75, 84, 75, 94, 82, 76, 90, 79, 88)
+
+# Establecer cantidad de remuestreos y nivel de significacion
+B <- 2000
+alfa <- 0.01
+= |
+# Funcién para calcular el estadistico: media de la remuestra
+media <- function({valores, i) f{
+mean {valores [i])
+
+# Construir la distribucién bootstrap usando 61 paquete boot
+set .seed (432)
+disgtribucicon_b <- boot(muestra, statistic = media, R = B)
+
+# Mostrar y graficar la distribucién bootstrap
+1 print (distribucion_b)
+v2 plot (distribucion_b)
+
+# Construir y mostrar los intervalos da confianza
+ica <- boot.ci(distribucion_b, conf = 1 - alfa,
+2 type = c("norm", "perc", “bca™)}
+cat("\n\a")
+print (ics)
+
+Histogram oft
+
+O10 0.20
+
+Density
+
+7B 82 86 90
+L
+
+0.00
+
+ao 6 90 3 lAot23
+
+r Quantiles of Standard Normal
+
+Figura 12.15: histograma y grafico Q-Q de la distribuci6n bootstrap generaca para el ejemplo.
+
+La linea 21 muestra las estadisticas de la distribucién bootstrap obtenida, como se presentan en la figura
+12.16, mientras que la figura 12.15 la muestra de forma gréfica mediante un histograma y un grafico Q-Q que
+se obtiene invocande a la funcién plet() con el objeto entregado por la funcién boot() (linea 22).
+
+Es importante revisar la distribucién bootstrap para confirmar que tiene la forma esperada, Observando los
+eraficos de la figura 12.15, podenmos notar que la distribucién bootstrap obtenida signe un comportamien-
+fo aproximadamente normal, tal vex con una pequetia asimetria positiva, que es lo esperado para medias
+muestrales.
+
+En las linens 25-20 se muestra el uso de poot.ci() para construir los intervalos de confianza usando diferentes
+mnétodos, Bajo el titulo BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS en la figura 12.16 se encuentran los
+resultados; [77,03; 87,25] usando aproximacion normal, [77,40; 87,70] usando percentiles y [T7,48; 87,90) al
+usar cl métode BCa.
+
+El script 12.13 muestra otra alternativa para construir la distribucién bootstrap, esta ves por medio del
+paquete bootES, que ofrece la funcitin bootES(data, R, ci.type, ci.conf, plot, ...). Esta funcidén es una
+wrapper, que internamente realiza una llamada a la funcién boot () desecrita en los parrafos prececdentes, que
+no requiere implementar previamente la funcién para el cdleulo de las medias de las remuestras. Debemos
+tener en cuenta que aqui solo se muestran algunos de los argumentos, a saber:
+
+= data: conjunto de datos.
+
+« R: cantidad de remuestreos bootstrap (3),
+
+» ci.type: tipo de intervalo de confianza a construir (opcional), con las mismas opciones descritas para
+boot cif).
+
+» ci.conf: nivel de significacién para el intervalo de confianza (opcional, por omisi¢m 0.95 ).
+
+= plot: por omisién con valor FALSE, cuando es TRUE geuera una figura con el histograma y el grafico
+Q-Q de la ditribuciin bootstrap.
+
+- martha macar attrac saranmantos mars Ia foneiAn Bast f onhwananta
+ORDINARY NONPARAMETRIC BOOTSTRAP
+
+Call:
+boot(data = muestra, statistic = media, R = B)
+
+Bootstrap Statistics :
+original bias std. error
+ti* 82.2 0.06125 1.98329
+
+BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+Based on 2000 bootstrap replicates
+
+CALL :
+boot.ci(boot.out = distribucion_b, conf = 1 - alfa, type = c("norm",
+"perc", "bea"'))
+
+Intervals :
+
+Level Normal Percentile BCa
+99% (77.03, 87.25 ) (77.40, 87.70) (77.48, 87.90 }
+Calculations and Intervals on Original Scale
+
+Some BOa intervals may be unstable
+
+Figura 12.16: intervalos de confianza para cl ejemplo obtenidos con bootstrapping.
+
+El seript 12.13 genera los mistos grafieos mostrades en la figura 12.15 y la siguiente salida a pantalla:
+
+99.00% bea Confidence Interval, 2000 replicates
+Stat CI (Low) CI (High) bias SE
+82.200 TT .482 87.900 0,061 1.983
+
+Podemos observar que la funcién beotES() entrega los mistmos resultados que los obtenidos con boot (), donde
+el intervalo de confianza reportado corresponde al tipo Bea, con la excepeién del niimero de decimales que
+sani.
+
+Seript 12.13: (continuacién del script 12.12) uso de la funcién beotES() para aplicar bootstrapping al
+ejemplo,
+# Construir la distribucién bootstrap usando el paquete bootEs
+1 # (este llamada ademas calcula (solo) un intervalo de confianza
+# y grafieca la distribucién bootstrap).
+set.seed (432)
+distribucion_bES <- bootES(muestra, R= B, ci.type = "bea",
+ci.conf = 1 - alfa, plot = TRUE)
+
+# Mostrar bootstrap obtenida con bootES
+print (distribueion_bES)
+
+Considerando estos resultados podemos concluir que tenemos 99% de confianga de que el algoritmo tarda
+entre 77,48 ms y 87,90 ms en ejecutar las instancias del tamaio seleccionacdo,
+
+Supongamos ahora que Helen desea hacer una prueba de hipotesis para ver si el tiermpo promedio de ejecucion
+del algoritmo para instancias del tamano seleccionado cs mayor a 75 milisegundos. Ast, tenemos que:
+
+Denotanda coma jo al tiempa medio que tarda el algerie de Helen pare resolver instancias de tamatio fija
+del problema, entonces:
+
+o: fe = 75 [msi
+Ha: jt > 75 [ms|
+
+El contraste de hipétesis clasioo se basa en una distribucién muestral centracda en el valor nulo para, a partir
+de ella, obtener el valor p, Sabemos que la distribucion bootstrap se centra alrededor del valor observado, por
+lo que debemos desplazarla para que represente la hipétesis nula. Para lograrlo, simplemente necesitameos
+restar a cada observacién de la distribucién bootstrap la diferencia entre su valor promedio y el valor nulo.
+Para calcular el valor p, seguimos la formula senalada en la ecuacion 12.11, donde:
+
+« r: cantidad de observaciones en la distribucién bootstrap desplazada a lo menos tan extremas como el
+estadistica observacso,
+« 4: cantidad de repeticiones bootstrap consideracdas en la simulaciin.
+
+r+1
+- = 12.11
+Bol ( )
+
+El script 12.14 muestra como aplicar estas ideas al ejemplo, que entrega el siguiente resultado:
+
+Media observada: 82.2
+Valor p: 0.0009995002
+
+es decir, obtenemos que p* < 0,001, menor que el nivel de significacién, por lo que la evidencia es suficiente-
+mente fuerte para rechasar la hipotesis nula en favor de la hipétesis alternativa, En consecuencia, concluimos
+con $9" de confianza que cl tiempo de ejecucién promedio del algoritme para instancias del tamaio selec-
+clonado supera los T5 milisegundos.
+
+Seript 12.14: (continuacién del seript 12.13) obtencién del valor p basado en bootstrapping para el ejemplo,
+
+iw # Desplazar la distribucién bootstrap para que se centre en el valor nulo
+1 Walor_nulo <- 75
+
+© desplazamiento <- mean(distribucion_b[["t"]]} - valor_nulo
+
+is, distribucion_nula <- distribucion_b[["t"]] - desplazamiento
+
+i # Determinar y mostrar la media observada y el valor p
+
+i Waler_observado <- media(muestra, i: length(muestra))
+
+op <- Csum(diatribucion_nula > valor_observado) + 1) / (B + 1)
+is} cat("Media observada valor_observado, "‘\n")
+
+in| cat("Valor p:", p, “\n")
+
+Por supuesto, si Helen supiera un poco mas de estadistica inferencial, no le sorprenderia este resultado puesto
+que el valor nulo no estA contenido en cl intervalo de confianza obtenida (75 ¢ (77,48; 87,00]), por lo que su
+procedimicnto solo sirve para obtener un valor p que reportar.
+
+12.2.3 Bootstrapping para dos muestras independientes
+
+El proceso para comparar dos poblacion as mediante bootstraping, es similar al que a Conocinas para uta
+tinica poblacién. Si tenemos dos muestras independientes A y B provenientes de dos poblaciones diferentes,
+de tamanos 74 ¥ 9 respectivamente, los pasos a seguir sor:
+
+1. Fijar la cantidad 6 de repeticiones bootstrap.
+2. En cada repeticidn:
+a) hacer un remuestreo com reposic
+
+on de tamano m4 a partir de la muestra A
+iy} hacer un remuestrec eon rep don de tamano my a partir de la muestra BL
+ce) calcular el estadistico de interés com las remuestras conseguicdas
+4, Construir el intervalo de confianza para el estaclistico de interés a partir de la distribucion bootstrap
+generac.
+
+El paquete eimpleboot facilita la construccién de distribuciones bootstrap para la diferencia de dos pard-
+
+metros por medio de la funckin wrapper two.boot(samplel, sample2, FUN, R). donde:
+
+= samplei, sample?: muestras originales.
+» FUN: funeién que calcula el estadistico de interés para cada remuestra.
+« 2: cantidad de remuestress con repeticién.
+
+Esta funcién opera generando remuestreos para cada una de las muestras originales, y calculando en cada
+iteracién el estadisticao (FUN(resamplel) - FUN(resample2}).
+
+Supongamos que una Universidad desea estudiar la diferencia entre las calificaciones finales de hombres y
+mujeres que rinden une asignatura inicial de programacion por primera vez. Para ello, disponen de las nobas
+(en escala de 1,0 a 7,0) de 27 hombres y 19 mujeres:
+Hombres: 2,6; 2,6; 2,7; 2,8; 4,2; 3,7; 4.1; 4,4; 4,5; 4,8; 6,2;
+
+ow gr be
+
+re
+4,7
+dé
+
+Mujeres: 5.3: 6.5: 5.5; 5.8; 6.0; 6,9: 6.5: 6.4: 6.4) 6,6; 6,7
+
+Tras aplicar pruebas de Shapiro Wilk, los investigadores han comprobaco que las notas de los varones no
+siguen una distribucién normal (W° = 0,884, p = 0,006), por lo que han decidido usar bootstrapping para la
+prueba de hipétesis, con un nivel de significacién o = 0,05 y B= 9.999 repeticiones.
+
+El seript 12.15 muestra el desarrollo de este ejemplo en R. La media observada (en la muestra original) para
+la calificacién final de las mujeres es F,, = 5,305, mientras que para los hombres es 7, = 3,670. Asi, la
+diferencia observada es F, — Fy, = — 16045.
+
+La distribucién bootstrap de la diferencia de medias se asemeja a la normal (figura 12.17), con media F =
+—1,628 y desviacién estandar s = 0,877. Notemos que debemos construir estos gréficos de forma manual
+(lineas 36-42 del seript) al utilizar la funcién two. boot ().
+
+m0 9
+g 200 .
+i F
+100
+ale
+0
+3 =2 1 4 =z 0 F a
+Dilerencia de medias Theoretical
+
+Figura 12.17: histograma y grafico Q-Q de la distribucién bootstrap generada para el ejemplo de la
+diferencia de dos mevlias.
+
+Seript 12.15; bootstraping para la diferencia de cos medias del ejemplo,
+
+library (boot)
+library (ggpubr)
+library (simpleboot )
+
+# Definir las muestras obtenidas
+
+hombres <= c(1.3, 1.65, 1.6, L.f, 1.7, 1.9, 2.3, 2.4, 32.6, 2.6, 2.7, 2.8, 3.2, 3.7,
+4.1, 4.4, 4.5, 4.8, 5.2, 5.2, 5.3, 5.5, 5.5, 5.6, 5.6, 5.7, 5.7)
+Mujeres <- c(3.5, 3.6, 3.8, 4.3, 4.5, 4.5, 4.9, 5.1, 6.3, &.3, 5.6,
+6.8, 6.0, 6.3, 6.3, 6.4, 6.4, 6.6, 6.7)
+
+n_hombres <- length (hombres)
+nmujeres <- length(mujeres)
+
+# Comprebar la normalidad de las muestras
+print (shapiro.test (hombres) )
+print (shapire.test (mujeres )}
+
+# Calcular y mostrar la diferencia observada entre las medias muestrales
+media_hombres <- mean({hombres)
+
+media_mujeres <- mean(mujeres)
+
+diferencia_obs <- media_hombres - media_mujeres
+
+cat("Media hombres:", round(media_hombres ,3), "\n")
+cat("Media mujeres:", round(media_mujeres ,3), "\n")
+cat("Diferencia observada:", round(diferencia_obs, 3), "\n\n")
+
+# Crear la distribucién bootstrap
+
+B<- 9999
+
+get.aeed (432)
+
+distribucion_b <- two.boot (hombres, mujeres, FUN = mean, R = B)
+
+# Examinar la distribuciién bootstrap
+»| dates <- data.frame(diferencias = distribucion_b[[{"t"]])
+
+g-hist <- gghistogram(datos, x = "diferencias", bins = 100,
+Zlab = "Diferencia de medias", ylab = "Frecuencia"™)
+B-4q <- geqqplot(datos, x = "diferencias")
+—& ‘= gearrange(g_hist, g_qq)}
+print (g)
+
+media_b <- mean(datos [["diferencias"]])
+ad_b <- asd(datoa[["diferencias"]])
+
+cat("Distribucién beotstrap:\n")
+cat("\tMedia:", round(media_b, 3), "\n")
+eat("\tDesviacién estandar:", round(sd_b, 3), "\n\n")
+
+# Conetruir y mostrar los intervalos de confianza
+alfa <- 0.05
+idntervalo_bea <- boot.ci(distribucion_b, comf = 1 - alfa, type = “bea")
+
+) print (intervalo_bca)
+
+# Desplazar la distribucion bootstrap para reflejar la hipétesis nula
+
+walor_mulo <- -0.5
+desplazamiento <- media_b - valer_nuloe
+distribucion_nula <- datos[["diferencias"]] - desplazamiento
+
+# Determinar y mostrar el valor p
+p s- (sum(distribucion_nula < diferencia_obs) + 1) / (B + 1)
+cat("\nValor p:", p, "\n")
+
+Al construir el intervalo de confianza mediante el método BCa para la distribucién bootstrap (lineas 54-54),
+R. nos entrega como resultado el intervalo [—2,372; —0,894)].
+
+Supongames ahora que el estudio del ejemplo pretende determinar, con un nivel de significacion a = 0,05,
+si la diferencia entre las calificaciones finales entre hombres y mujeres es mayor a 5 décimas, en favor de las
+mujeres. Las hipétesis serfan:
+
+Seart in ¥ fte das medias de lax calificaciones finales de hombres y mujeres, respectinamente, em wie maige
+naturn intcial de programactin al rendirla por primera vez en la Universidad en estudio, entonces:
+
+Ao: ph = im = -0,5
+
+Hy: ip = fm < —O,5
+
+Tras conseguir la distribucién bootstrap para la hipétesis mula (lineas 59-61 del seript 12,15) y determinar
+la proporcién de remuestras con valores Lanto o més extremos que el observade en la muestra original (linea
+64), obtenemos p = 0,001, inferior al nivel de significacién, por lo que rechazamos la hipétesis nula en favor
+de Ja alternativa. En consecuencia, concluimos con 95% de confianza que la diferencia en la calificacién final
+entre hombres y mujeres es mayor a 4 décimas en favor de las mujeres.
+
+12.2.4 Bootstrapping para dos muestras apareadas
+
+En este caso, el procedimiento resulta muy sencillo. A partir de las dos muestras originales, se crea una nueva
+muestra con la diferencia entre ambas, y luego se realiza el proceso especificado para la construceiém de un
+intervalo de confianza para el caso de una tnica muestra que ya conocimos.
+
+Supongamoes ahora, que la Universidad del ejemplo anterior desea saber si la diferencia entre las calificaciones
+obtenidas en la primera ¥ la segunda prucba de un curso inicial de programacidn es de 5 décimas. Para ello,
+dispone de las siguientes califcaciones (en escala de 1,0 a 7,0) obtenidas en ambas prucbas para una muestra
+de 20) estudiantes:
+Prueba I: 3.5: 2,7: 1,0: 1,8; 1,6: 4,4: 5,8: 64: 2
+Prueba 2: 5.2: 6.1: 5.9: 4,8; 1.4: 2,3: 6
+
+La Universidad ha cecidido llevar a cabo el estudio mediante bootstrapping con B = 3.999 repeticiones y un
+nivel de significacién o = 0.05. Asi, el equipo de investigacién ha formulado las siguientes hipdtesis:
+
+S08: 6.3: 2.0; 1,8: 4,0; 5.8: Lt: 3
+© 12: 3.9: 2.0: 1.7; 3,3; 60: 48: 6.
+
+Sean P} y P? las califienciones obtenidas por ella i-ésimo/a estudiante en la primera y la segunda prucha,
+respectivamente, de un curso mictal de progremacion. Sea DD, = P - FP} las diferencias de estas califica-
+clones para cada estudiante, con media up. Bntonces:
+
+Hy: ep = 05
+
+Ho: pp #05
+
+Para realizar el andlisis inferencial propuesta, el equipo a cargo del estudio ha creado en Rel script 12.16,
+obteniendo los resultados que se presentan en la figura 12.18.
+
+Media de las diferencia observada: 0.325
+Distribucién bootstrap e intervalo de confianza:
+
+95.00% bea Confidence Interval, 3999 replicates
+Stat CI (Low) CI (High) bias SE
+0.325 -0.656 1.439 0.001 0.541
+
+Valor p: 0.689
+
+Figura 12.18: intervalo de confianza BCa y valor p para la media de las diferencias.
+
+Vernos que fallames en rechazar la hipétesis mula. Conmcluimos entences, con 95% de confianza, que no es
+posible descartar que, en promeclio, la diferencia de las calificaciones entre la primera y la segunda evaluacion
+de un curso inicial de programacion en la Universidad en estudio sea de 5 décimas (p = 0,689; 95% IC:
+(-0,656; 1,439),
+
+Script 12.16: bootstraping para inferir acerca de la media de las diferencias.
+library (bootES )
+
+: set.eeed (432)
+
+# Ingresar datos originales.
+
+prueba_i1 <- c(3.5, 2.7, 1.0, 1.8, 1.6, 4.9, 5.8, 6.4, 3.9, 4.9, 3.4,
+5.3, 6.8, 6.3, 2.0, 1.3, 4.0, 5.3, 1.6, 3.6)
+
+| prueba.2 <- c(5.2, 5.1, 65.9, 4.8, 1.4, 2.3, 6.8, 5.3, 3.1, 3.9, 4.6,
+
+1 1.2, 3.9, 2.0, 1.7, 3.3, 6.0, 4.8, 6.9,
+
+os}# Calecular la diferencia entre ambas observaciones.
+
+diferencia <- prueba_2 - prueba_1
+
+5 # Calculer la media observada de las diferencias.
+
+valor_observado <- mean(diferencia)
+
+-|# Generar la distribucién bootstrap y su intervalo de confianza.
+1B «- 3999
+alfa <- 0.05
+
+distribucion_bES <- bootES(diferencia, R = B, ci.type = "bea",
+ci.conf = 1 - alfa, plot = FALSE)
+
+# Desplazar la distribucion bootstrap para reflejar la hipétesis nula.
+valor_nulo <- 4.6
+desplazamiento <- mean(distribucion_bES[["t"]]) - walor_nulo
+
+. distribucion_nula <- distribucion_bES[["t"]] - desplazamiento
+
+|}# Determinar el valor p.
+
+P <- (sum(abs(distribucion_nula) > abs(valor_observado)) + 1) / (B+ 1)
+
+# Mostrar los resultados
+
+ecat("Media de laa diferencia observada:", round({valor_obzervado, 3), "\n\n")
+cat("Distribucién bootstrap « inmtervalo de confianza:\n")
+
+print (distribucion_bES)
+
+cat("Valor p:", round(p, 3), "\n")
+12.2.5 Pruebas de permutaciones
+
+En el capitulo 8 conocimos la prueba exacta de Fisher, la cual obtiene un valor p exacto tras calcular todas
+las permutaciones de los datos con iguales valores marginales en una tabla de contingencia y considerar
+tinicamente aquellas permutaciones que ocurren con igual o menor probabilidad que la obtenida para los
+datos del estudio. Esta prueba pertenece al grupo conocido como pruebas exactas de permutaciones,
+cuyo finico requisito es la intercambiabilidad: si se cumple la hipétesis nula, todas las permutaciones pueden
+ocurrir con igual probabilidad. En la practica, este tipo de método puede emplearse para diversos estadisticos,
+tales como la proporcién, la media y la varianza.
+
+En términos generales, las pruebas exactas de permutaciones para la diferencia entre dos grupos A y B de
+tamanos m4 y “ig, respectivamente, sigue los siguientes pasos:
+
+1. Calcular la diferencia entre el estadistico de interés observado para ambos grupos.
+
+2. Juntar ambas muestras en una muestra combinada.
+
+3. Obtener todas las formas de separar la muestra combinada en dos grupos de tamanos n4 y ng.
+
+. Construir la distribucién de las diferencias entre el estad{stico de interés obtenido para ambos grupos
+en cada una de las permutaciones.
+
+. Calcular el valor p exacto, dado por la proporcién de permutaciones en que el valor (absoluto, si es
+bilateral) de la diferencia calculada es menor/mayor o igual al valor (absoluto si es bilateral) de la
+diferencia observada.
+
+ao
+
+Puesto que las pruebas exactas de permutaciones requieren calcular todas las permutaciones, solo resultan
+adecuadas para muestras pequenas, pues requieren de una enorme cantidad de cémputos. En consecuencia, si
+la muestra es grande, suele tomarse una muestra aleatoria de las permutaciones posibles, y a partir de
+ella calcular un valor p aproximado dado por la ecuacién 12.11, Las pruebas que siguen este procedimiento
+se denominan pruebas de permutaciones © pruebas de permutaciones de Monte Carlo. Podemos ver que
+en la ecuacién 12.11 se suma 1 tanto al numerador como al denominador, una correccién necesaria puesto
+que el método de Monte Carlo no es insesgado.
+
+De los paérrafos anteriores se desprende que las pruebas de permutaciones (exactas 0 no) son adecuadas para
+cl contraste de hipétesis con dos o més muestras, pues determinan una significacién estadistica (valor p). En
+términos generales, el procedimiento para efectuar una prueba de permutaciones de Monte Carlo no es muy
+distinto al de bootstrapping, aunque hay algunas diferencias fundamentales en el trasfondo:
+
+. Formular las hipétesis a contrastar e identificar el estadistico de interés @.
+
+. Crear una gran cantidad P? de permutaciones de las muestras originales, usando muestreo sin reposicion
+sobre la muestra combinada, y obtener el estadfstico @ para cada permutacién.
+
+. Generar la distribucién del estadistico @ (bajo el supuesto que la hipétesis nula es cierta).
+
+. Determinar la probabilidad de encontrar en la distribucién generada un valor de @ al menos tan extremo
+como el observado en las muestras originales.
+
++o ne
+
+Debemos fijarnos en que, a diferencia de bootstrapping, las prucbas de permutaciones usan muestreo sin
+reposicién puesto que, si la hipétesis nula fuera cierta, cada separacién de la muestra combinada seria
+igualmente probable. Asi, lo que se hace en cada repeticién es reordenar las observaciones y asignarlas
+ordenadamente a uno de los grupos. respetando los tamanos n4 y ng de las muestras originales.
+
+12.2.6 Prueba de permutaciones para dos muestras independientes
+
+Consideremos el siguiente ejemplo: el profesor de una asignatura inicial de programaci6n, que se imparte para
+estudiantes de primer aho de Ingenieria y estudiantes de Gltimo ano de otras carreras como electivo, desea
+estudiar si existen diferencias en el rendimiento acacdémico de ambos grupos. Para ello, considera una muestra
+de n4 = 20 estudiantes de primer afio de Ingenieria y ng = 12 estudiantes de tiltimo aio de otras carreras.
+El profesor ha decidido comparar el promedio de calificaciones finales de ambos grupos usando una prucba
+de permutaciones con P = 5.999 repeticiones y un nivel de significacién a = 0,05. La diferencia observada
+para las muestras originales es 74 — Fg = —0,017, sugiriendo que los estudiantes de Ingenieria tienen peores
+calificaciones, Asi, las hipétesis a contrastar son:
+
+Denotando come jt4 al promedio de calificaciones finales de estudiantes de primer ano de Ingenieria en el
+curso inicial de programacion bajo estudio, y como jtp al promedio de calificaciones finales de estudiantes
+
+?Tradicionalmente se usa un ndmero terminado en 9, pues solfan simplificar los cémputos cuando se hactan manualmente,
+ein eafturare
+de iiltimo ano de otras carreras en el mismo curso, entonces:
+Ho: jta— tx = 0
+Ha: ta- pp #0
+
+Tras hacer la prueba, la distribucién generada se asemeja bastante a la normal, aunque con una ligera
+asimetria hacia la derecha (figura 12.19), y el valor p obtenido para el contraste de hipétesis es p = 0,969,
+por lo que concluye con 95% de confianza que no hay evidencia suficiente para creer que existe diferencia
+entre los promedios de las calificaciones finales de ambos grupos de estudiantes,
+
+2
+£
+fe
+“1
+=2
+=i t¢) bi at 2 0 2 4
+Estadistico de interés Theoretical
+
+Figura 12.19: histograma y grafico Q-Q de la distribucién para la diferencia de medias generada mediante
+permutaciones.
+
+Intrigado por este resultado, pues el profesor tiene la fuerte sensacién de que, en general, los estudiantes de
+Ingenieria tienen mas calificaciones deficientes que los estudiantes de otras carreras, ha decidido hacer un
+nuevo estudio con las mismas muestras, comparando ahora la diferencia en la variabilidad (manteniendo la
+misma cantidad de repeticiones e igual nivel de significaci6n). Asi:
+
+Denotando como a4 a la varianza de las calificaciones finales de estudiantes de primer ano de Ingenieria
+en el curso inicial de programacién bajo estudio, y como og a la varianza de las calificaciones finales de
+estudiantes de tiltimo ano de otras carreras en el mismo curso, entonces:
+
+Ho: CaAa-CR= 0
+
+Ha: on -a6 ~0
+
+La diferencia observada entre las varianzas de la muestra original es or4 — org = 2,560, sugiriendo que
+la variabilidad de las calificaciones obtenidas por los estudiantes de ingenierfa es mayor. Tras efectuar el
+contraste de hipétesis, obtiene como resultado p = 0,003, evidencia suficiente para rechazar la hipétesis nula
+en favor de la hipdétesis alternativa. Luego, el profesor concluye que su percepcidn no es del todo errada,
+puesto que la variabilidad de las calificaciones es significativamente mayor para los estudiantes de Ingenieria,
+
+Para hacer estos estudios, el profesor desarrollé en R el script 12.17. A pesar de que existen varios paquetes
+de R para realizar pruebas de permutaciones, él ha decidido realizar una implementacién propia del proce-
+dimiento creando la funcién contrastar_hipotesis_permutaciones(), la cual realiza el proceso y arroja como
+resultado el valor p resultante. Podemos ver que esta funcién opera usando como estadistico de interés la
+diferencia de un estadistico entre dos remuestras y que la funcién que calcula dicho estadistico (para una
+muestra de datos) se entrega como argumento,
+
+Script 12.17: pruebas de permutaciones para variables numéricas.
+| library (ggpubr)
+# Definir las muestras iniciales
+
+a <- (6.4, 4.7, 6.3, 2.9, 5.9, 5.
+3
+
+i, 1.6, 6.7, 3.0, 3.3,
+§.0, 4.1, 3.3, 3.4, 1.2, 3.8,
+
+on
+
+cha C225
+-8, 4.2)
+
+b <- c(4.0, 4.1, 4.3, 4.3, 4.3, 4.2, 4.3, 4.3, 4.4, 4.1, 4.3, 4.0)
+» # Establecer semilla y cantidad de repeticiones
+
+R = 5999
+) set. seed (432)
+# Funcién para obtener una permutacién.
+
+» # Argumentos:
+
+# - i: iterador (para llamadas posteriores).
+
+(| # = muestra_1, muestra_2: muestras.
+
+# Valor:
+# - lista con las muestras resultantes tras la permutacién.
+
+» obtiene_permutacion <- function(i, muestra_i, muestra_2) {
+
+cay
+
+BHEREEESE
+
+BREHEREEREERE
+
+m1 <- length(muestra_1)
+
+combinada <- c(muestra_i, muastra_2)
+
+m <- length(combinada)
+
+permutacion ge sample (combinada, ny, replace = FALSE)
+nueva_l <- permutacion[i:n_1]
+
+nueva_2 <- permutacion[(n_1+1):n]
+
+return(list(nueva_1, nueva_2))
+
+ip
+Funcién para calcular la difarancia de un eatadietico de interés entre
+dos muestras.
+Argumentoa:
+- muestrags: lista con las muestras.
+- FUN: nombre de la funcién que calcula el estadiatice de interés.
+Valor:
+
+# - diferencia de un estadistico para dos muestras.
+calcular_diferencia <- function(muestras, FUN) ¢
+Buestra_il <- muestras[[1]]
+muestra 2 <- suestras[(2))
+diferencia <- FUN(muestra_i) - FUN(muestra_2)
+
+raturn(difarancia)
+
+}
+
+Funcién para calcular el valor p.
+
+Argumentos:
+
+- distribucion: distribucién nula del estadistico de interés.
+
+- valor_observade: valor del estadistico de interés para las muestras
+originales.
+
+- Tepeticiones: cantidad de permutaciones a realizar.
+
+- alternative: tipo de hipétesis alternativa. "two.sided" para
+hipS5tesis bilateral, "greater" o "leas" para hipétesis unilaterales.
+
+Valor;
+
+# - el valorp calculado.
+calcular_valor_p <- function(distribucion, valor_observado,
+repeticiones, alternative) {
+if(alternmative == "two.sided") {
+numerador <- sum(abs(distribucion) > abs(valor_observado)) + 1
+denominador <- repeticiones + 1
+valor_p <- numerador / danominador
+
+else if(alternative == "greater") {
+numerador <- sum({diatribucion > valor_observade) + 1
+denominador <- repeticiones + 1
+valor_p <- numerador / denominador
+
+elee {
+numerador <- sum(distribucion < valor_observade) + i
+denominador <«- repeticiones + 1
+valor_p <- numerador / denaminader
+
+return(valor_p)
+
+# Funcién para graficar una distribucién.
+# Argumentos:
+# - diatribucion: distribucién nula del estadistice dea interés.
+
+las
+»|
+“1 graficar_distribucion <- function(distribucion, ...)
+observaciones <- data, frame(distribucion)
+
+#
+#
+2
+| &
+7 #
+a
+#
+#
+#
+€
+
+}
+
+Otros Argumentos a ser entregados a gghistogram ¥ geqqgplot.
+t
+
+histegrama <- gghistogram(observaciones, x © "distribucion",
+
+qq <-
+
+xlab = "Estadistico de interés",
+ylab = "Frecuencia", bins = 30, ...)
+Eeqqplot(observaciones, x = "distribucion", ...)
+
+# Crear uma unica figura com todos los graficos de dispersion.
+
+figura
+
+print (
+
+<= ggarrange(histograma, qq, ncol = 2, nrow = 1)
+figura)
+
+Funcieén para hacer la prueba da permutaciones.
+
+Argumentos:
+
+- Muestra_l, muestra_2: vactoras numaé@ricos con las muastras 4 comparar.
+- repeticiones: cantidad de permutaciones a realizar.
+
+- FUN:
+
+funcion del estadiatico E para el que se calcula la diferencia.
+
+- alternative: tipo de hipétesis alternativa. "two.sided" para
+hipétesis bilateral, “greater" o "less" para hipétesia unilaterales.
+
+- plot
+
+: Si 68 TRUE, construyé @1 grafico de la distribucién generada.
+otros argumentes a ger entregados a graficar_diatribucion.
+
+ontrastar_hipotesis permutaciones <- function(muestra_1, muestra_2,
+
+repeticiones, FUN,
+
+alternative, plot, ...) {
+cat("Prueba de permutaciones\n\n")
+cat ("Hipdétesis alternativa:", alternative, “\n")
+observade <- calcular_diferencia(list(musstra_1, muestra_2), FUN)
+
+cat("Valor observado:", observade, “\n")
+
+8 Generar permutaciones
+
+n_i <-
+
+length (muestra_i)
+
+Permutaciones <- lapply(1:repeticiones, obtiene_permutacion, muéstra_i
+
+muestra_2)
+
+# Generar la distribucién
+distribucian <- sapply(permutaciones, calcular_diferencia, FUW)
+
+# Graf
+
+icar la distribucién
+
+if(plot) {
+graficar_distribucion(distribucion, ...)
+
+}
+
+# Calcular y mostrar el valor p
+valor_p <- calcular_valor_p(distribucion, observado, repeticiones,
+
+alternativa)
+
+cat ("Valor p:", valor_p, "\n\n")
+
+Bleque principal -----
+
+ion # Hacer pruebas de permutaciones para la media y la varianza
+
+. contrastar_hipotesis_permutaciones(a, b, repeticiomes = AR, FUN = mean,
+
+alternative = "two.sided", plot = TRUE,
+color = "blue", fill = "blue")
+
+ios contrastar_hipotesis_permutaciones(a, b, repeticiones = AR, FUN = var,
+
+alternative = "two.sided", plot = FALSE)
+eee e rere renee eee eee eee
+12.2.7 Prueba de permutaciones para comparar més de dos muestras correlacionadas
+
+Supengamos ahora que una cstudiante de un curso de programacién necesita comparar la eficiencia de tres
+algoritmes de ordenamiento: Quicksort, Bubblesort v Mergesort. Para ello, ha seleccionado aleatoriamente
+6 arreglos de igual tamano y registrado para cada uno de ellos el tiempo de ejecucién utilizado por cada
+algoritme (en milisegundos) bajo iguales condiciones, como muestra la tabla 12.3,
+
+Instancia Quicksort Bubblesort Mergesort
+
+1 11,2 10,7 12.0
+2 22,6 29,3 25,7
+3 23,4 30,7 25,7
+4 24,4 30,8 23,7
+5 21,8 29,8 25,5
+6 40,1 Oo 44.7
+
+Tabla 12.5: tiempos de ejecucién para las diferentes instancias con cada algoritme del ejemplo.
+
+Las hipétesis contrastadas son:
+
+Sean Q;. B; y M; los tempos requeridos por los algoritmos de ordenamienta Quicksert, Dubblesort y Merge-
+
+sort, respectivamente, para ordenar un arregle i. Denotames (Y —X) al conjunto {¥/—X\} de les diferencias
+
+en los tiempos de ejecucidn requeridos por los algaritmos NX e Y. Entoneces:
+
+Alg: en promedio, no hay diferencias en el tiempo de ejecucién necesitade por cada algoritme de ordenamiento
+para ordenar las mismas instancias. Matematicamente:: yy — 9) = bso) = bo) = UL
+
+Ag: la media de las diferencias en el tiempo de ejecucién necesitado para ordenar las mismas instancias es
+diferente para al menos un par de algoritmos. Mateméticamente: IXY,¥ ¢ {Q,B,M},| payox 2 0.
+
+Tras comprobar mediante la figura 12.20 que no se cumple la condicién de normalidad, la estudiante ha
+decidido usar permutaciones para resolver su problema. Para cllo, ha considerado un nivel de significacién
+o = 0,01 y un total de 2.999 repeticiones, abteniendo come resultaclo un valor p< 0,001, mucho menor que el
+nivel de significaciém. En consecuencia, concluye con 99% de confianza que el tiempo de ejecucién promedio
+es significativamente diferente para al menos uno de los algoritmos.
+
+Algoritmo = Quicksort =e Bubblesart -® Mengesort
+
+Quicksort Bubblesort Mengesort
+50 .
+.
+40+ .
+a
+Ee
+5 304
+ia) ———S—s
+—
+204
+.
+o+# .
+“10-05 00 05 10 “10-05 00 05 10 =1.0-0.5 00 0.5 1.0
+Theoretical
+
+Figura 12.20: grafico Q-Q para comprobar el supuesto de normalidad para el ejemplo.
+
+A fin de determinar qué algoritmos difieren en su tiempo promedio de ejecucién, ha deeidido llevar a cabo un
+procecdimicnto post-hoc, calculando y ajustando los valores p para las medias de las diferencias entre cada par
+de grupos para las diferentes permutaciones, obteniende los resultados que se presentan en la figura 12.21. En
+conaecuencia, el estudiante concluye con 99% de confianza, que existen diferencias significativas en el tiempo
+promedio de ejecucién entre los algoritmos Quicksort y Bubblesort y los algoritmos Bubblesort y Mergesort.
+Al estudiar las diferencias observadas, puede ver que Bubblesort es menos eficiente que los dos algoritmes
+restantes.
+
+El seript 12.18 corresponde a la solucién desarrollada por la estudiante,
+ANOVA de una via para muestras pareadas con permutaciones:
+Valor p 6mnibus: 0.0003333333
+
+Andlisis post-hoc (permutaciones) para la diferencia de las medias
+Valores p ajustados:
+
+Quicksort - Bubblesort: 0.001
+
+Quicksort - Mergesort: 0.266
+
+Bubblesort - Mergesort: 0.032
+
+Diferencias observadas:
+
+Quicksort - Bubblesort: -7.367
+Quicksort - Mergesort: -2.483
+Bubblesort - Mergesort: 4.883
+
+Figura 12.21: resultado del procedimiento post-hoc.
+
+Script 12.18: prueba de permutaciones para muestras correlacionadas.
+
+library (ez)
+library (ggpubr)
+library (tidyr)
+
+# Crear la matriz de datos
+
+Algoritmos <- c("Quicksort", "Bubblesort", "Mergesort")
+Quicksort <- c(11.2, 22.6, 23.4, 23.3, 21.8, 40.1)
+Bubblesort <- c(15.7, 29.3, 30.7, 30.8, 29.8, 50.3)
+Mergesort <- c(12.0, 25.7, 25.7, 23.7, 25.5, 44.7)
+Instancia <- factor (1:6)
+
+datos_anchos <- data.frame(Instancia, Quicksort, Bubblesort, Mergesort)
+
+datos_largos <- datos_anchos |>
+pivot_longer(all_of(Algoritmos),
+names_to = "Algoritmo",
+values_to = "Tiempo")
+datos_largos[["Algoritmo"]] <- factor(datos_largos[["Algoritmo"]],
+levels = Algoritmos)
+
+| # Verificar la condicién de normalidad
+2g <- ggqqplot(datos_largos, "Tiempo", facet.by = "Algoritmo",
+color = "Algoritmo")
+print (g)
+
+# Establecer nivel de significacién
+> alfa <- 0.01
+
+# Obtener el valor observado, correspondiente al estadistico F entregado
+# por ANOVA para la muestra original.
+anova <- ezANOVA(datos_largos, dv = Tiempo, within = Algoritmo,
+wid = Inetancia)
+valor_observado <- anova[["ANOVA"]](("F"]]
+
+# Funcién para obtener una permutacion;
+
+# devuelve una matriz de datos con formato ancho.
+obtiene_permutacion <- function(i, df_ancho) {
+
+df_ancho[, 2:4] <- t(apply(df_ancho[, 2:4], 1, sample))
+return (df_ancho)
+
+~
+
+# Obtiene permutaciones
+R = 2999
+3
+
+‘
+u
+‘
+t
+
+set seed (432)
+parmutaciones «- lapply(1:R, obtiene_permutacion, datos_anchos)
+
+# Funcién para obtener al estadistico F para una matriz de datos con
+# formato ancho.
+
+\ obtiene_F <- function(df_ancho) {
+
+df_largo <- df_ancho |>
+pivet_longer(c("Quicksort", "Bubblesert", "Mergesart"),
+Dames_to = "Algoritmo",
+values_to = "“Tiempo")
+df_largo[["Algoritmo"]] <- factor(df_large[["Algoritmo"]])
+
+anova <- ezANOVA (df_largo, dv = Tiempo, within = Algoritmo,
+wid = Instancia)
+return(anova[["ANOVA"JICC"F"1])
+
+# Genera distribucién de eatadiaticos F con las permutaciones
+
+distribucion <- sapply(permutaciones , obtiene_F)
+
+# Obtener y mostrar ¢1 valor p
+
+ep <- (sum(digstribucion > valeor_observada) + 1) / (RK + 1)
+
+cat("ANOVA de una via para muestras pareadas con permutaciones :\n"}
+cat("Valor p émnibuas:", p, "\n")
+
+» # Amélisis post-hoc
+
+# Funcién para calcular la media de las diferencias para dos columnas de una
+# matriz de datos en formato anche.
+obtiene _media_difs <- function(df_ancho, columna_i, columna_2) {
+
+media <- mean(df_ancho[[columna_i]] - df_ancho[{columna_2]])
+
+return (madia)
+
+«|# Obtiene las las medias de las diferencias observadas
+» dif_obs_Q_H <- obtiene_media_difs(datos_anchos, "Quicksort", "Bubblesort")
+» dif_obs_Q_M <- obtiene_media_difs(dates_anchos, "“Quicksort", "Mergesort")
+
+dif_obs_B_M <- obtiene_media_difa(datos_anchos, "Bubblesort", "Mergesort")
+
+# Obtiene las distribuciones de las medias de las diferencias permutadas
+dist _medias_difs_Q_B <- sapply(permutaciones, obtiene_media_difs,
+"Quicksort", "Bubblesort")
+
+» dist_medias_dife_Q_M <- sapply(permutaciones, obtiene_media_difs,
+
+“Quicksort", "Mergesert")
+
+» dist _medias_difs_B_M <- sapply(permutaciones, obtiene_madia_difs,
+
+"Bubblesort", "Mergesort")
+
+# Obtener valores p
+ss Bum <- sum(abs(dist_medias_difa_Q_B) > abs(dif_obe_Q_B)) + 1
+
+den <- R+1
+p_Q_B <- num / den
+
+num <- sum(aba(dist_mediaa_difs_Q_M) > abe(dif_oba_Q_M)}) + 1
+den <- R+1
+
+» p_Q_M <- num / den
+
+num <- sum(absa(dist_medias_difs_B_M) = abe(dif_obs_B_M)) + 1
+
+den <- R +1
+p_B_M <- num / den
+
+uo) WValeres_p <- ¢(p_Q_B, p_Q_M, p_B_M)
+
+# Ajustar y mostrar valores p
+valores_p_adj <- p.adjuet(valeres_p, method = "BH")
+
+» catc"\n\n")
+1 cat("Analisis post-hoc (permutaciones) para la diferencia de las medias\n")
+
+Cat (8 wwe ee ees \n")
+2 cat("Valores p ajustados:\n")
+
+cat (sprintf ("Quicksort - Bubblesort:
+» cat(sprintf(" Quicksort - Mergesort:
+» cat(sprintf("Bubblesort - Mergesort:
+
+, cat("\nDiferencias observadas:\n")
+
++ cat (sprintf ("Quicksort - Bubblesort:
+» cat(sprintf(" Quicksort - Mergesort:
+, cat(sprintf("Bubblesort - Mergesort:
+
+%.3£\n", valores_p_adj[1]))
+%.3£\n", valores_p_adj[2]))
+%.3£\n", valores_p_adj[3]))
+
+%6.3£\n", dif_obs_Q_B))
+%6.3f\n", dif_obs_Q_M))
+“%6.3£\n", dif_obs_B_M))

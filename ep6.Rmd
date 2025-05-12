@@ -1,0 +1,308 @@
+---
+title: 'EP06: ANOVA para muestras correlacionadas'
+author: "Equipo 6"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggpubr)
+library(gridExtra)
+library(cowplot)
+library(ez)
+library(stats)
+library(nlme)
+library(emmeans)
+```
+
+## Contexto
+> Un equipo de investigadores del área de interacción humano-información está estudiando si el área temática y el nivel de dificultad del problema de información influyen en el tiempo (en segundos) que toma un usuario en formular una consulta de búsqueda para resolver dicho problema. Para ello, han reclutado a un grupo de participantes voluntarios, asignados aleatoriamente a distintos grupos. Cada participante debe resolver tres problemas de información con diferentes niveles de dificultad: baja, media y alta. A su vez, cada grupo debe resolver problemas relacionados a una temática diferente. Los datos recolectados contemplan las siguientes variables:
+
+- **id:** Identificador único de cada participante.
+- **area:** Área temática de los problemas que el participante debe responder. Variable categórica con los niveles Arquitectura, Biología, Computación, Economía, Física, Leyes, Literatura, Matemáticas, Música, Pedagogía, Psicología, Química.
+- **dificultad:** Nivel de dificultad del problema resuelto. Variable categórica con los niveles Baja, Media y Alta.
+- **tiempo:** Tiempo, en segundos, que toma al participante formular la consulta.
+
+### Pregunta asignada
+En este momento, los investigadores buscan determinar si existen diferencias en el tiempo que tardan los usuarios en formular consultas para problemas con diferente nivel de dificultad en el área de leyes.
+
+#### Lectura de los datos
+```{r}
+datos <- read.csv2("EP06 Datos.csv", sep=",")
+leyes <- datos[datos$area == 'Leyes', ]
+baja <- leyes[leyes$dificultad == 'Baja', ]
+media <- leyes[leyes$dificultad == 'Media', ]
+alta <- leyes[leyes$dificultad == 'Alta', ]
+head(leyes)
+```
+
+#### Hipótesis a contrastar
+
+- $H_0$: No hay diferencias significativas en los tiempos promedio que demoran los usuarios en formular consultas para problemas de diferentes niveles de dificultad en el área de leyes.
+
+- $H_A$: La media de las diferencias en los tiempos de formulación de consultas para problemas respecto del área de leyes, es diferente para al menos uno de los niveles de dificultad.
+
+Matemáticamente:
+
+$$
+H_0 := \mu_{d \ (B-M)} = \mu_{d \ (B-A)} = \mu_{d \ (A-M)} = 0\\
+H_A := \exists X, Y \in \{ B, M, A \} \ | \ \mu_{d \ (X-Y)} \neq 0 
+$$
+Donde $\mu_d$ es la media de la diferencia entre los tiempos entre dos grupos.
+En vista de esto, se realizará una prueba ANOVA de una vía para muestras correlacionadas.
+
+#### Condiciones
+
+1. **La escala con que se mide la variable dependiente tiene las propiedades de una escala de intervalos iguales**
+La variable en cuestión describe mediciones de tiempo, como magnitud física esta sí posee una escala de intervalos iguales.
+
+2. **Las observaciones son independientes al interior de cada muestra:** 
+Se asume que las observaciones son independientes entre sí al interior de las muestras; el tiempo de resolución de un problema no debería influenciar al de otro participante.
+
+3. **Se puede suponer razonablemente que la(s) población(es) de origen sigue(n) una distribución normal.**
+Para comprobar esto se harán los gráficos Q-Q para cada muestra:
+
+```{r}
+qq_baja <- ggqqplot(data = baja, x = "tiempo", main = "Grafico Dificultad Baja")
+qq_media <- ggqqplot(data = baja, x = "tiempo", main = "Grafico Dificultad Media")
+qq_alta <- ggqqplot(data = alta, x = "tiempo", main = "Grafico Dificultad Alta")
+
+# agrupar plots
+plot_grid(qq_baja, qq_media, qq_alta, labels = "AUTO")
+```
+
+Se logra apreciar la ausencia de valores que puedan ser considerados atípicos, por lo tanto la distribución de los valores puede suponerse razonablemente como una distribución normal.  
+
+4. **La matriz de varianzas-covarianzas es esférica.**
+
+Por conveniencia, la comprobación de esta condición se analizará con el resultado de la prueba ómnibus dado por `ezANOVA`.
+
+#### Prueba ómnibus
+
+```{r warning=F}
+prueba <- ezANOVA(data = leyes, dv = tiempo, wid = id, within = dificultad)
+p_mauchly <- prueba$'Mauchly\'s Test for Sphericity'$p
+e_gg <- prueba$'Sphericity Corrections'$GGe
+e_hf <- prueba$'Sphericity Corrections'$HFe
+p_anova <- prueba$ANOVA$p
+print(prueba)
+```
+
+Viendo el valor p asociado a la prueba de Mauchly, $p = `r round(p_mauchly,4)`$, no se puede dudar que los datos no cumplan la condición de esfericidad. Las estimaciones de $\epsilon$ respaldan esto, teniendo $\epsilon = `r round(e_gg, 4)`$ para el método de Greenhouse-Geisser, y $\epsilon = `r round(e_hf, 4)`$ para el método de Huynd-Feldt; ambos valores mayores a 0.9, lo cual indica sólo desviaciones *leves* de esfericidad.
+
+Procediendo con la prueba ANOVA se obtiene un valor $p = `r p_anova`$, por lo cual, se rechaza $H_0$ en favor de $H_A$; entonces, se concluye que la media de las diferencias en los tiempos de formulación de consultas para los problemas es distinta para al menos un nivel de dificultad.
+
+Para determinar el nivel donde existe esta diferencia se debe aplicar un procedimiento post-hoc. En particular, se aplicará la prueba HSD de Tukey. Esto debido a que se tienen pocos grupos, con solo 3, no hacen falta tantas comparaciones, y considerando que la prueba ya es significativa, no hace falta un metodo tan conservador.
+
+#### Procedimiento post-hoc
+
+```{r}
+mixto <- lme(tiempo ~ dificultad, data = leyes, random = ~1|id)
+medias <- emmeans(mixto, "dificultad")
+hsd <- contrast(medias, method = "pairwise", adjust = "tukey")
+hsd
+
+alfa <- 0.05
+plot(hsd, level = 1 - alfa, colors = "steelblue" ) + 
+  ggtitle("Post - hoc HSD de Tukey") + 
+  xlab("Diferencias en tiempos de resolución \n para las mismas instancias ") + 
+  ylab("Pares de dificultades") + theme_pubr()
+```
+Sobre los resultados de la prueba Post-Hoc de Tukey HSD, revisamos los 3 niveles de dificultad comparados en duplas y los resultados asociados:
+Alta-Baja: la diferencia media en el tiempo entre estas dificultades es de 8.63 segundos, con p < 0.0001, siendo esta entonces una diferencia significativa entre las dificultades. tal que es significativa la diferencia en tiempo para formular consultas sobre problemas de dificultad alta vs los de dificultad baja.(Dif. Alta toma más tiempo que Dif. Baja)
+
+Alta-Media: la diferencia media en el tiempo entre estas dificultades es de 1.99 segundos, con p = 0.00283, siendo esta entonces una diferencia significativa entre las dificultades, aunque menor en comparación a la diferencia entre Alta-Baja. Tal que es significativa la diferencia en tiempo para formular consultas sobre problemas de dificultad alta vs los de dificultad media.(Dif. Alta toma más tiempo que Dif. Media)
+
+Baja-Media: la diferencia media en el tiempo entre estas dificultades es de -6.64 segundos, con p < 0.0001, siendo esta entonces una diferencia significativa entre las dificultades. Tal que es significativa la diferencia en tiempo para formular consultas sobre problemas de dificultad Media vs los de dificultad Baja. (Dif. Baja toma menos tiempo que Dif. Media)
+
+
+
+### Conclusión
+La prueba de anova y luego la prueba post-hoc de tukey indican que los niveles de dificultad para formular preguntas en el area de leyes tiene un impacto sigfinicativo en el tiempo que los usuarios tardan para formular una consulta, de forma que toman significativamente más tiempo en formular preguntas para problemas de alta dificultad en comparación a formulacion de preguntas para problemas de baja y media dificultad.
+Además, se observa que los usuarios tardan más tiempo en formular preguntas para problemas de dificultad mediia en comparación con la formulación de preguntas de dificultad baja.
+De forma que podemos concluir que el nivel de dificultad es un factor importante que afecta al tiempo de formulación de consultas sobre la tematica de leyes.
+Se recomienda por lo tanto tener en cuenta estas diferencias significativas para diseñar experiencias de usuario más efectivas para interfaces de busqueda para resolver consultas.
+
+
+```{r}
+# Cargar paquetes necesarios
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if(!require(car)) install.packages("car"); library(car)
+if(!require(ez)) install.packages("ez"); library(ez)
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+if(!require(lme4)) install.packages("lme4"); library(lme4)
+if(!require(emmeans)) install.packages("emmeans"); library(emmeans)
+
+# Cargar los datos
+datos <- read.csv2("EP06 Datos.csv", sep=",")
+leyes <- datos[datos$area == 'Leyes', ]
+
+# Asegurémonos de que 'dificultad' e 'id' sean factores
+leyes$dificultad <- as.factor(leyes$dificultad)
+leyes$id <- as.factor(leyes$id)
+
+# ===========================================
+# EJECUTAR ANOVA DE MEDIDAS REPETIDAS CON EZANOVA
+# ===========================================
+# Ejecutar ANOVA de medidas repetidas utilizando ezANOVA
+prueba <- ezANOVA(
+  data = leyes,         # Datos del área 'Leyes'
+  dv = tiempo,          # Variable dependiente: 'tiempo'
+  wid = id,             # Identificador de sujeto (id)
+  within = dificultad,  # Condición dentro de los sujetos (dificultad)
+  detailed = TRUE,      # Mostrar detalles adicionales
+  return_aov = TRUE     # Retornar el objeto ANOVA
+)
+
+# Imprimir resultados de la prueba
+p_mauchly <- prueba$'Mauchly\'s Test for Sphericity'$p
+e_gg <- prueba$'Sphericity Corrections'$GGe
+e_hf <- prueba$'Sphericity Corrections'$HFe
+p_anova <- prueba$ANOVA$p
+print(prueba)
+
+# ===========================================
+# VERIFICACIÓN DE NORMALIDAD Y HOMOCEDASTICIDAD
+# ===========================================
+
+# EXTRAER EL MODELO ANOVA DEL RESULTADO DE 'ezANOVA'
+aov_modelo <- prueba$aov  # Extraemos el modelo ANOVA subyacente
+
+# Obtener los residuos del modelo ANOVA
+residuos <- residuals(aov_modelo)
+
+# Verificar el tamaño de los residuos
+cat("Tamaño de los residuos:", length(residuos), "\n")
+
+# Convertimos los residuos a un vector numérico (en caso de que sea necesario)
+residuos <- as.numeric(residuos)
+
+# Verificar si el tamaño de los residuos es válido para la prueba de Shapiro-Wilk
+if (length(residuos) >= 3 && length(residuos) <= 5000) {
+  # Realizar la prueba de normalidad (Shapiro-Wilk)
+  shapiro_test_result <- shapiro.test(residuos)  # Prueba de normalidad de Shapiro-Wilk
+  print(shapiro_test_result)  # Imprimir el resultado de la prueba
+} else {
+  cat("Error: El tamaño de la muestra no es válido para la prueba de Shapiro-Wilk\n")
+}
+
+# Verificar homocedasticidad (Levene Test)
+levene_test_result <- leveneTest(tiempo ~ dificultad, data = leyes)
+print(levene_test_result)  # Imprimir resultado de homocedasticidad
+
+# ===========================================
+# TRANSFORMACIONES DE DATOS (Logaritmica o Tukey)
+# ===========================================
+
+# Aplicar una transformación logarítmica a la variable 'tiempo'
+transformacion_log <- function(x) {
+  log_x <- log(x + 1)  # Evitar log(0)
+  return(log_x)
+}
+
+# Transformación logarítmica de la variable 'tiempo'
+leyes$tiempo_log <- transformacion_log(leyes$tiempo)
+
+# Visualizar la diferencia antes y después de la transformación
+par(mfrow = c(1, 2))
+hist(leyes$tiempo, main = "Tiempo Original", col = "skyblue", xlab = "Tiempo")
+hist(leyes$tiempo_log, main = "Tiempo Logarítmico", col = "steelblue", xlab = "Tiempo (Log)")
+
+# ===========================================
+# MODELO MIXTO: Evaluación de Efectos Aleatorios
+# ===========================================
+
+# Crear el modelo mixto usando efectos aleatorios para sujetos
+mixto <- lme(tiempo ~ dificultad, data = leyes, random = ~1|id)
+
+# Resumen del modelo
+summary(mixto)
+
+# Evaluación de los residuos de efectos aleatorios
+plot(residuals(mixto), main = "Residuos de Efectos Aleatorios")
+qqnorm(residuals(mixto))
+qqline(residuals(mixto))
+
+# Verificar los efectos aleatorios significativos
+anova(mixto)
+
+# ===========================================
+# CÁLCULO DE PODER PARA ANOVA DE MEDIDAS REPETIDAS
+# ===========================================
+calcular_poder_anova_repetidas <- function(n_sujetos, alpha = 0.05, n_simulaciones = 1000) {
+  resultados <- replicate(n_simulaciones, {
+    # Simulamos los datos de los sujetos y las condiciones
+    tiempo_baja <- rnorm(n_sujetos, mean = 20, sd = 5)
+    tiempo_media <- rnorm(n_sujetos, mean = 25, sd = 5)
+    tiempo_alta <- rnorm(n_sujetos, mean = 30, sd = 5)
+    
+    # Crear el data.frame con estos datos
+    data_simulada <- data.frame(
+      tiempo = c(tiempo_baja, tiempo_media, tiempo_alta),
+      dificultad = rep(c("Baja", "Media", "Alta"), each = n_sujetos),
+      id = rep(1:n_sujetos, times = 3)
+    )
+    
+    # Asegurándonos de que las variables 'dificultad' y 'id' sean factores
+    data_simulada$dificultad <- as.factor(data_simulada$dificultad)
+    data_simulada$id <- as.factor(data_simulada$id)
+    
+    # Realizamos ANOVA de medidas repetidas
+    prueba <- ezANOVA(data = data_simulada, dv = tiempo, wid = id, within = dificultad, return_aov = TRUE)
+    p_anova <- prueba$ANOVA$p[1]
+    p_anova < alpha
+  })
+  
+  poder <- mean(resultados)
+  cat("Potencia de la prueba ANOVA de medidas repetidas:", poder, "\n")
+}
+
+# Ejecutar la simulación para 30 sujetos y 1000 simulaciones
+calcular_poder_anova_repetidas(n_sujetos = 30, n_simulaciones = 1000)
+
+# ===========================================
+# ANALISIS DE PERMUTACION PARA F-ESTIMADO
+# ===========================================
+
+# Función de permutación para obtener F-valor
+obtiene_F <- function(df_ancho) {
+  df_largo <- pivot_longer(df_ancho, c("Quicksort", "Bubblesort", "Mergesort"),
+                           names_to = "Algoritmo", values_to = "Tiempo")
+  df_largo[["Algoritmo"]] <- factor(df_largo[["Algoritmo"]])
+  anova <- ezANOVA(df_largo, dv = "Tiempo", within = "Algoritmo", wid = "Instancia")
+  return(anova[["ANOVA"]]["F"][1])
+}
+
+# Simulaciones para estimar la distribución F bajo permutaciones
+permutaciones <- replicate(1000, obtiene_F(df))  # 1000 permutaciones
+
+# ===========================================
+# VISUALIZACIÓN DE RESULTADOS POST-HOC
+# ===========================================
+
+# Gráfico de comparación de medias con Tukey
+posthoc_tukey <- function(modelo_aov) {
+  resultado <- TukeyHSD(modelo_aov)
+  df_comparacion <- as.data.frame(resultado[[1]])
+  ggplot(df_comparacion, aes(x = rownames(df_comparacion), y = diff, ymin = lwr, ymax = upr)) +
+    geom_pointrange() +
+    labs(x = "Comparaciones", y = "Diferencia de medias") +
+    theme_minimal()
+}
+
+# Ejemplo: Crear un modelo ANOVA y realizar un post-hoc de Tukey
+modelo_anova <- aov(Sepal.Length ~ Species, data = iris)
+posthoc_tukey(modelo_anova)
+
+# Gráfico de comparación de medias para la variable 'tiempo' en 'leyes'
+modelo_anova_leyes <- aov(tiempo ~ dificultad, data = leyes)
+posthoc_tukey(modelo_anova_leyes)
+
+```
+
+
+
+
