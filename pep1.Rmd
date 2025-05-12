@@ -118,6 +118,25 @@ if (p_value < 0.05) {
   print("No se rechaza la hipotesis nula")
 }
 
+posthoc_tukey <- function(modelo_aov) {
+  resultado <- TukeyHSD(modelo_aov)
+  print(resultado)
+  cat("Interpretación:\n")
+  sig <- resultado[[1]][, "p adj"] < 0.05
+  print(data.frame(Diferencia = rownames(resultado[[1]]), Significativa = sig))
+}
+
+posthoc_tukey(anova_sp)
+
+comparaciones_multiples_t <- function(data, grupo, respuesta, metodo = "holm") {
+  resultado <- pairwise.t.test(data[[respuesta]], data[[grupo]], p.adjust.method = metodo)
+  print(resultado)
+}
+comparaciones_multiples_t(datos_sp, "Consola", "America", metodo = "holm")
+comparaciones_multiples_t(datos_sp, "Consola", "Europa", metodo = "holm")
+comparaciones_multiples_t(datos_sp, "Consola", "Japon", metodo = "holm")
+comparaciones_multiples_t(datos_sp, "Consola", "Otro", metodo = "holm")
+
 
 
 ```
@@ -131,7 +150,6 @@ datos_x_eu <- datos %>% filter(Consola == "XBox") %>% select(Id, Titulo, Consola
 
 head(datos_g_eu)
 head(datos_x_eu)
-
 
 # Boxplot para ANOVA o Kruskal-Wallis
 grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
