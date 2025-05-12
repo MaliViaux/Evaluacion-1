@@ -46,6 +46,17 @@ head(datos)
 
 #pregunta 1
 ```{r}
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if(!require(car)) install.packages("car"); library(car)
+if(!require(ez)) install.packages("ez"); library(ez)
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+if(!require(lme4)) install.packages("lme4"); library(lme4)
+if(!require(emmeans)) install.packages("emmeans"); library(emmeans)
+if(!require(ggplot2)) install.packages("ggplot2"); library(ggplot2)
+if(!require(ggplot2)) install.packages("ggplot2"); library(ggplot2)
+
 #las variables son Id, Titulo, Consola, America, Europa, Japon, Otro
 #filtramos por super nintendo
 datos_sp <- datos %>% filter(Consola == "Super Nintendo") %>% select(Id, Titulo, Consola, America, Europa, Japon, Otro)
@@ -57,16 +68,34 @@ shapiro_test <- shapiro.test(datos_sp$America)
 shapiro_test
 # cuento cuantos datos tenemos
 nrow(datos_sp)
-if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
-if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
-if(!require(moments)) install.packages("moments"); library(moments)
-if(!require(car)) install.packages("car"); library(car)
-if(!require(ez)) install.packages("ez"); library(ez)
-if(!require(pwr)) install.packages("pwr"); library(pwr)
-if(!require(lme4)) install.packages("lme4"); library(lme4)
-if(!require(emmeans)) install.packages("emmeans"); library(emmeans)
 
-# Verificar homocedasticidad (igualdad de varianzas) con 
+# Boxplot para ANOVA o Kruskal-Wallis
+grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  boxplot(formula_str, data = data, main = titulo, col = "lightblue", ylab = respuesta)
+}
+# Crear boxplot para la variable America vs Super Nintendo
+grafico_boxplot(datos_sp, "Consola", "America", "Boxplot de America por Consola")
+# Crear boxplot para la variable Europa vs Super Nintendo
+grafico_boxplot(datos_sp, "Consola", "Europa", "Boxplot de Europa por Consola")
+# Crear boxplot para la variable Japon vs Super Nintendo
+grafico_boxplot(datos_sp, "Consola", "Japon", "Boxplot de Japon por Consola")
+# Crear boxplot para la variable Otro vs Super Nintendo
+grafico_boxplot(datos_sp, "Consola", "Otro", "Boxplot de Otro por Consola")
+
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_sp$America)
+qqline(datos_sp$America, col = "blue")
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_sp$Europa)
+qqline(datos_sp$Europa, col = "red")
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_sp$Japon)
+qqline(datos_sp$Japon, col = "green")
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_sp$Otro)
+qqline(datos_sp$Otro, col = "grey")
+
 
 #hipotesis nula: mismo nivel de popularidad en todas las regiones
 #hipotesis alternativa: diferente nivel de popularidad en todas las regiones
@@ -98,17 +127,39 @@ if (p_value < 0.05) {
 #filtramos por europa gameboy
 datos_g_eu <- datos %>% filter(Consola == "Gameboy") %>% select(Id, Titulo, Consola, Europa)
 #filtramos por europa xbox
-datos_g_eu <- datos %>% filter(Consola == "XBox") %>% select(Id, Titulo, Consola, Europa)
+datos_x_eu <- datos %>% filter(Consola == "XBox") %>% select(Id, Titulo, Consola, Europa)
 
 head(datos_g_eu)
-head(datos_g_eu)
+head(datos_x_eu)
+
+
+# Boxplot para ANOVA o Kruskal-Wallis
+grafico_boxplot <- function(data, grupo, respuesta, titulo = "Boxplot de Grupos") {
+  formula_str <- as.formula(paste(respuesta, "~", grupo))
+  boxplot(formula_str, data = data, main = titulo, col = "lightblue", ylab = respuesta)
+}
+# Crear boxplot para la variable europa vs gameboy
+grafico_boxplot(datos_g_eu, "Gameboy", "Europa", "Boxplot de Europa por Consola")
+# Crear boxplot para la variable europa vs xbox
+grafico_boxplot(datos_x_eu, "Xbox", "Europa", "Boxplot de Europa por Consola")
+
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_g_eu$Europa)
+qqline(datos_g_eu$Europa, col = "blue")
+# grafico qqplot para comprobar la normalidad de los datos
+qqnorm(datos_x_eu$Europa)
+qqline(datos_x_eu$Europa, col = "red")
 
 #realizamos la prueba de shapiro-wilk para comprobar la normalidad de los datos
 shapiro_test_g_eu <- shapiro.test(datos_g_eu$Europa)
 shapiro_test_g_eu
 
+#realizamos la prueba de shapiro-wilk para comprobar la normalidad de los datos
+shapiro_test_x_eu <- shapiro.test(datos_x_eu$Europa)
+shapiro_test_x_eu
+
 #realizamos la prueba para comparar si la popularidad de gameboy y xbox en europa con wilcoxon rank sum test
-wilcox_test <- wilcox.test(datos_g_eu$Europa, datos_g_eu$Europa, paired = FALSE)
+wilcox_test <- wilcox.test(datos_g_eu$Europa, datos_x_eu$Europa, paired = FALSE)
 wilcox_test
 
 # segun wilcox entonces
