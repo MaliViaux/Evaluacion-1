@@ -48,12 +48,27 @@ head(datos)
 ```{r}
 #las variables son Id, Titulo, Consola, America, Europa, Japon, Otro
 #filtramos por super nintendo
-datos_sp <- datos %>% filter(Consola == "Super Nintendo") %>% select(Id, Titulo, Consola, America, Europa,
-
+datos_sp <- datos %>% filter(Consola == "Super Nintendo") %>% select(Id, Titulo, Consola, America, Europa, Japon, Otro)
 #print de datos
 head(datos_sp)
+#para poder realizar anova tenemos que comprobar que los datos son normales y que tienen varianzas iguales
+#realizamos la prueba de shapiro-wilk para comprobar la normalidad de los datos
+shapiro_test <- shapiro.test(datos_sp$America)
+shapiro_test
+# cuento cuantos datos tenemos
+nrow(datos_sp)
+if(!require(ggpubr)) install.packages("ggpubr"); library(ggpubr)
+if(!require(dplyr)) install.packages("dplyr"); library(dplyr)
+if(!require(moments)) install.packages("moments"); library(moments)
+if(!require(car)) install.packages("car"); library(car)
+if(!require(ez)) install.packages("ez"); library(ez)
+if(!require(pwr)) install.packages("pwr"); library(pwr)
+if(!require(lme4)) install.packages("lme4"); library(lme4)
+if(!require(emmeans)) install.packages("emmeans"); library(emmeans)
 
-#hipotesis nula:  mismo nivel de popularidad en todas las regiones
+# Verificar homocedasticidad (igualdad de varianzas) con 
+
+#hipotesis nula: mismo nivel de popularidad en todas las regiones
 #hipotesis alternativa: diferente nivel de popularidad en todas las regiones
 #realizamos la prueba de anova
 anova_sp <- aov(America ~ Europa + Japon + Otro, data = datos_sp)
@@ -62,33 +77,19 @@ summary(anova_sp)
 #rechaza o no la hipotesis nula
 #si el p-value es menor a 0.05, se rechaza la hipotesis nula
 #si el p-value es mayor a 0.05, no se rechaza la hipotesis nula
-if(anova_sp$`Pr(>F)`[1] < 0.05){
+#extraemos el p-value
+p_value <- summary(anova_sp)[[1]][["Pr(>F)"]][1]
+p_value
+
+# aceptamos la hipotesis nula si el p-value es mayor a 0.05
+#si el p-value es menor a 0.05, se rechaza la hipotesis nula
+if (p_value < 0.05) {
   print("Se rechaza la hipotesis nula")
 } else {
   print("No se rechaza la hipotesis nula")
 }
 
-#realizamos la prueba de shapiro-wilk
-shapiro_test <- shapiro.test(datos_sp$America)
-shapiro_test
-#realizamos la prueba de bartlett
-bartlett_test <- bartlett.test(America ~ Europa + Japon + Otro, data = datos_sp)
-bartlett_test
-#realizamos la prueba de tukey
-tukey_test <- TukeyHSD(anova_sp)
-tukey_test
-#realizamos la prueba de post-hoc
-posthoc_test <- pairwise.t.test(datos_sp$America, datos_sp$Europa, p.adjust.method = "bonferroni")
-posthoc_test
-#realizamos la prueba de kruskal-wallis
-kruskal_test <- kruskal.test(America ~ Europa + Japon + Otro, data = datos_sp)
-kruskal_test
-#realizamos la prueba de wilcoxon
-wilcoxon_test <- wilcox.test(America ~ Europa + Japon + Otro, data = datos_sp)
-wilcoxon_test
-#realizamos la prueba de friedman
-friedman_test <- friedman.test(America ~ Europa + Japon + Otro, data = datos_sp)
-friedman_test
+
 
 ```
 
@@ -101,5 +102,22 @@ datos_g_eu <- datos %>% filter(Consola == "XBox") %>% select(Id, Titulo, Consola
 
 head(datos_g_eu)
 head(datos_g_eu)
+
+#realizamos la prueba de shapiro-wilk para comprobar la normalidad de los datos
+shapiro_test_g_eu <- shapiro.test(datos_g_eu$Europa)
+shapiro_test_g_eu
+
+#realizamos la prueba para comparar si la popularidad de gameboy y xbox en europa con wilcoxon rank sum test
+wilcox_test <- wilcox.test(datos_g_eu$Europa, datos_g_eu$Europa, paired = FALSE)
+wilcox_test
+
+# segun wilcox entonces
+# si el p-value es menor a 0.05, se rechaza la hipotesis nula
+# si el p-value es mayor a 0.05, no se rechaza la hipotesis nula
+if (wilcox_test$p.value < 0.05) {
+  print("Se rechaza la hipotesis nula")
+} else {
+  print("No se rechaza la hipotesis nula")
+}
 ```
 
